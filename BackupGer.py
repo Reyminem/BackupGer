@@ -9,7 +9,7 @@ import sys
 
 app = tk.Tk()
 app.title("BackupGer")
-app.geometry("400x370")
+app.geometry("400x400")
 icon_path = os.path.join(os.path.dirname(__file__), "Utility", "12.ico")
 app.iconbitmap(icon_path)
 
@@ -32,12 +32,12 @@ title_label_tab1.pack(pady=5)
 def create_directories():
     directories_to_create = [
         "C:\\BKP_1.2\\Scripts",
-        "C:\\BKP_1.2\\Backup\\Domingo",
+        "C:\\BKP_1.2\\Backup\\Domingo", "C:\\BKP_1.2\\Backup\\Almoco",
         "C:\\BKP_1.2\\Backup\\Segunda", "C:\\BKP_1.2\\Backup\\Terca",
         "C:\\BKP_1.2\\Backup\\Quarta", "C:\\BKP_1.2\\Backup\\Quinta",
         "C:\\BKP_1.2\\Backup\\Sexta", "C:\\BKP_1.2\\Backup\\Sabado",
         "C:\\BKP_1.2\\7-Zip",
-        "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Domingo",
+        "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Domingo", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Almoco",
         "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Segunda", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Terca",
         "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Quarta", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Quinta",
         "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Sexta", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Sabado"
@@ -110,12 +110,12 @@ title_label_tab2.pack(pady=5)
 def create_directories():
     directories_to_create = [
         "C:\\BKP_1.2\\Scripts",
-        "C:\\BKP_1.2\\Backup\\Domingo",
+        "C:\\BKP_1.2\\Backup\\Domingo", "C:\\BKP_1.2\\Backup\\Almoco",
         "C:\\BKP_1.2\\Backup\\Segunda", "C:\\BKP_1.2\\Backup\\Terca",
         "C:\\BKP_1.2\\Backup\\Quarta", "C:\\BKP_1.2\\Backup\\Quinta",
         "C:\\BKP_1.2\\Backup\\Sexta", "C:\\BKP_1.2\\Backup\\Sabado",
         "C:\\BKP_1.2\\7-Zip",
-        "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Domingo",
+        "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Domingo", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Almoco",
         "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Segunda", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Terca",
         "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Quarta", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Quinta",
         "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Sexta", "C:\\Program Files (x86)\\12informatica\\BackupDrive\\Sabado"
@@ -217,9 +217,6 @@ title_label_tab4.pack(pady=5)
 days_label = ttk.Label(tab4, text="Selecione os dias:")
 days_label.pack(pady=1)
 
-# Valor padrão para a entrada do horário
-hour_var = tk.StringVar(value="16:30")
-
 # Traduz os dias para português
 day_translation = {
     "Sun": "Dom",
@@ -229,9 +226,11 @@ day_translation = {
     "Thu": "Qui",
     "Fri": "Sex",
     "Sat": "Sáb",
+    "Lunch": "Alm",
 }
 
 day_labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+day_labels.append("Lunch")
 selected_day_var = tk.StringVar()
 
 # Função para a seleção dos dias
@@ -256,7 +255,7 @@ day_buttons_frame.pack(padx=15, pady=2)
 # Loop para a criação dos botões
 day_buttons = []
 
-for i in range(7):
+for i in range(8):
     row = i // 2
     col = i % 2
 
@@ -274,10 +273,20 @@ for i in range(7):
 hour_label = ttk.Label(tab4, text="Hora:")
 hour_label.pack()
 
+hour_var = tk.StringVar(value="16:30") # Placeholder
 hour_entry = ttk.Entry(tab4, textvariable=hour_var)
 hour_entry.pack()
 
+# Caixa para a entrada do horário do almoço
+lunch_hour_label = ttk.Label(tab4, text="Horário do Almoço:")
+lunch_hour_label.pack()
+
+lunch_var = tk.StringVar(value="12:00") # Placeholder
+lunch_hour_entry = ttk.Entry(tab4, textvariable=lunch_var)
+lunch_hour_entry.pack()
+
 bat_files = {
+    "Lunch": "C:\BKP_1.2\Scripts\BKPAlmoco.bat",
     "Sun": "C:\BKP_1.2\Scripts\BKPDomingo.bat",
     "Mon": "C:\BKP_1.2\Scripts\BKPSegunda.bat",
     "Tue": "C:\BKP_1.2\Scripts\BKPTerca.bat",
@@ -287,7 +296,6 @@ bat_files = {
     "Sat": "C:\BKP_1.2\Scripts\BKPSabado.bat",
 }
 
-# Função para a criação das tarefas no agendador
 def create_task():
     selected_days = selected_day_var.get().split(",")
     selected_hour = hour_var.get()
@@ -302,7 +310,22 @@ def create_task():
                 "/sc", "weekly", "/d", selected_day, "/st", selected_hour, "/f",
                 "/rl", "HIGHEST", "/RU", "NT AUTHORITY\SYSTEM", "/IT"
             ]
-            subprocess.run(task_command, capture_output=True, text=True)
+
+            # Adicione o caso para tratar o dia "Lunch"
+            if selected_day == "Lunch":
+                lunch_hour = lunch_hour_entry.get()
+                lunch_task_name = f"BKP {translated_day}"
+                lunch_task_command = [
+                    "schtasks", "/create", "/tn", lunch_task_name, "/tr", batch_file_path,
+                    "/sc", "daily", "/st", lunch_hour_entry.get(), "/f",
+                    "/rl", "HIGHEST", "/RU", "NT AUTHORITY\SYSTEM", "/IT"
+                ]
+                subprocess.run(lunch_task_command, capture_output=True, text=True)
+
+            else:
+                # Crie a tarefa normalmente para os outros dias
+                subprocess.run(task_command, capture_output=True, text=True)
+
             status_label_tab4.config(text="Tarefas criadas!", foreground="blue")
         else:
             status_label_tab4.config(text=f"Nenhum dia selecionado!", foreground="red")
@@ -324,11 +347,11 @@ create_buttons_frame.pack(padx=15, pady=2)
 
 # Botão para criar tarefas
 create_task_button = ttk.Button(create_buttons_frame, text="Criar tarefas", command=create_task)
-create_task_button.grid(row=0, column=0, padx=10, pady=10)
+create_task_button.grid(row=0, column=0, padx=10, pady=5)
 
 # Botão para criar a rotina de inicialização do computador
 create_startup_routine_button = ttk.Button(create_buttons_frame, text="Criar rotina de E-mail", command=create_startup_routine)
-create_startup_routine_button.grid(row=0, column=1, padx=10, pady=10)
+create_startup_routine_button.grid(row=0, column=1, padx=10, pady=5)
 
 status_label_tab4 = ttk.Label(tab4, text="", foreground="black")
 status_label_tab4.pack()
