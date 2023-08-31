@@ -9,8 +9,8 @@ import sys
 
 app = tk.Tk()
 app.title("BackupGer")
-app.geometry("400x360")
-icon_path = os.path.join(os.path.dirname(__file__), "12.ico")
+app.geometry("400x370")
+icon_path = os.path.join(os.path.dirname(__file__), "Utility", "12.ico")
 app.iconbitmap(icon_path)
 
 # Aplica o tema "clam"
@@ -64,15 +64,15 @@ def create_directories():
             shutil.copy2(source_item, target_item)
 
     # Obtém o caminho da pasta temporária onde os arquivos foram extraídos
-    temp_dir = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
+    utility_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Utility")
     
     # Copia os executáveis do 7-Zip para a pasta temporária
-    seven_zip_dir = os.path.join(temp_dir, "C:\\BKP_1.2\\7-Zip")
+    seven_zip_dir = os.path.join("C:\\BKP_1.2\\7-Zip")
     if not os.path.exists(seven_zip_dir):
         os.makedirs(seven_zip_dir)
 
-    shutil.copy2(os.path.join(temp_dir, "7z.exe"), seven_zip_dir)
-    shutil.copy2(os.path.join(temp_dir, "7z-x64.exe"), seven_zip_dir)
+    shutil.copy2(os.path.join(utility_dir, "7z.exe"), seven_zip_dir)
+    shutil.copy2(os.path.join(utility_dir, "7z-x64.exe"), seven_zip_dir)
 
     status_label_tab1.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
 
@@ -85,7 +85,7 @@ title_label_tab1.pack(pady=5)
 # Extrai as informações do banco de dados do cliente (Razão social, nome fantasia, CNPJ, etc..)
 def execute_bat_script():
     script_name = "MySQLExtract.bat"
-    script_path = os.path.join(sys._MEIPASS, script_name) if hasattr(sys, "_MEIPASS") else script_name
+    script_path = os.path.join(os.path.dirname(__file__), "Utility", script_name)
     
     try:
         subprocess.run([script_path], shell=True, check=True)
@@ -337,7 +337,7 @@ status_label_tab4.pack()
 tab5 = ttk.Frame(notebook)
 notebook.add(tab5, text="Sobre")
 
-version_label_tab5 = ttk.Label(tab5, text="Versão do Programa: 4.0.2", font=("Helvetica", 12, "bold"), justify="center")
+version_label_tab5 = ttk.Label(tab5, text="Versão do Programa: 4.0.3", font=("Helvetica", 12, "bold"), justify="center")
 version_label_tab5.pack(pady=20)
 version_label_tab5 = ttk.Label(tab5, text="Programa voltado para a configuração de rotinas\n de backup automáticas do MySQL e SQL Server.", justify="center")
 version_label_tab5.pack(pady=20)
@@ -348,6 +348,6 @@ app.mainloop()
 
 # Comando para compilação do executável
 """
-pyinstaller --onefile --icon=12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL" --add-data "ScriptsMySQL;ScriptsMySQL"
---add-data "7z.exe;." --add-data "7z-x64.exe;." --add-data "MySQLExtract.bat;." --add-data "12.ico;." BackupGer.py
+pyinstaller --onefile --icon=Utility/12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL"
+--add-data "ScriptsMySQL;ScriptsMySQL" --add-data "Utility;Utility" BackupGer.py
 """

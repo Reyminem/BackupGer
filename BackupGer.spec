@@ -8,7 +8,7 @@ a = Analysis(
     ['BackupGer.py'],
     pathex=[],
     binaries=[],
-    datas=[('ScriptsSQL', 'ScriptsSQL'), ('ScriptsMySQL', 'ScriptsMySQL'), ('7z.exe', '.'), ('7z-x64.exe', '.'), ('MySQLExtract.bat', '.'), ('12.ico', '.')],
+    datas=[('ScriptsSQL', 'ScriptsSQL'), ('ScriptsMySQL', 'ScriptsMySQL'), ('Utility', 'Utility')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['12.ico'],
+    icon=['Utility\\12.ico'],
 )
