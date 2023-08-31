@@ -9,7 +9,7 @@ import sys
 
 app = tk.Tk()
 app.title("BackupGer")
-app.geometry("400x370")
+app.geometry("400x360")
 icon_path = os.path.join(os.path.dirname(__file__), "12.ico")
 app.iconbitmap(icon_path)
 
@@ -316,7 +316,7 @@ def create_startup_routine():
         "/sc", "onstart", "/f", "/rl", "HIGHEST", "/RU", "NT AUTHORITY\SYSTEM", "/IT"
     ]
     subprocess.run(task_command, capture_output=True, text=True)
-    status_label_tab4.config(text="Rotina de E-mail criada!", foreground="blue")
+    status_label_tab4.config(text="Rotina de e-mail criada!", foreground="blue")
 
 # Frame para os botões de criação de rotina
 create_buttons_frame = ttk.Frame(tab4)
