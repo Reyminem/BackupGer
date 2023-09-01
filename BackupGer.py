@@ -6,12 +6,21 @@ import functools
 import os
 import shutil
 import sys
+import ctypes
 
 app = tk.Tk()
 app.title("BackupGer")
 app.geometry("400x400")
-icon_path = os.path.join(os.path.dirname(__file__), "Utility", "12.ico")
+icon_path = os.path.join(os.path.dirname(__file__), "bin", "12.ico")
 app.iconbitmap(icon_path)
+
+# Carrega a .dll pro funcionamento no Windows 7
+exe_directory = os.path.dirname(sys.executable)
+dll_path = os.path.join(exe_directory, "bin", "api-ms-win-core-path-l1-1-0.dll")
+try:
+    dll = ctypes.WinDLL(dll_path)
+except OSError as e:
+    print(f"Erro ao carregar a DLL: {e}")
 
 # Aplica o tema "clam"
 style = ttk.Style()
@@ -64,7 +73,7 @@ def create_directories():
             shutil.copy2(source_item, target_item)
 
     # Obtém o caminho da pasta temporária onde os arquivos foram extraídos
-    utility_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Utility")
+    utility_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
     
     # Copia os executáveis do 7-Zip para a pasta temporária
     seven_zip_dir = os.path.join("C:\\BKP_1.2\\7-Zip")
@@ -85,7 +94,7 @@ title_label_tab1.pack(pady=5)
 # Extrai as informações do banco de dados do cliente (Razão social, nome fantasia, CNPJ, etc..)
 def execute_bat_script():
     script_name = "MySQLExtract.bat"
-    script_path = os.path.join(os.path.dirname(__file__), "Utility", script_name)
+    script_path = os.path.join(os.path.dirname(__file__), "bin", script_name)
     
     try:
         subprocess.run([script_path], shell=True, check=True)
@@ -132,14 +141,21 @@ def create_directories():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     scripts_source_dir = os.path.join(script_dir, "ScriptsSQL")
 
-    for item in os.listdir(scripts_source_dir):
-        source_item = os.path.join(scripts_source_dir, item)
-        target_item = os.path.join(script_target_dir, item)
-        
-        if os.path.isdir(source_item):
-            shutil.copytree(source_item, target_item, dirs_exist_ok=True)
-        else:
-            shutil.copy2(source_item, target_item)
+    try:
+        for item in os.listdir(scripts_source_dir):
+            source_item = os.path.join(scripts_source_dir, item)
+            target_item = os.path.join(script_target_dir, item)
+
+            if os.path.isdir(source_item):
+                shutil.copytree(source_item, target_item, dirs_exist_ok=True)
+            else:
+                shutil.copy2(source_item, target_item)
+
+        # Diretórios e arquivos foram criados com sucesso
+        status_label.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
+    except Exception as e:
+        # Em caso de erro, exibir mensagem de erro
+        status_label.config(text=f"Erro: {str(e)}", foreground="red")        
 
     # Obtém o caminho da pasta temporária onde os arquivos foram extraídos
     temp_dir = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
@@ -152,15 +168,13 @@ def create_directories():
     shutil.copy2(os.path.join(temp_dir, "7z.exe"), seven_zip_dir)
     shutil.copy2(os.path.join(temp_dir, "7z-x64.exe"), seven_zip_dir)
 
-    status_label.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
-
-create_directories_button = ttk.Button(tab2, text="Criar Diretórios", command=create_directories)
+create_directories_button = ttk.Button(tab2, text="Criar diretórios", command=create_directories)
 create_directories_button.pack(pady=10)
 
 # Função para salvar dados do servidor SQL
 def save_data():
     if not (server_name_entry.get() and user_entry.get() and password_entry.get()):
-        status_label.config(text="Erro: Preencha todos os campos!", foreground="red")
+        status_label.config(text="Erro: preencha todos os campos!", foreground="red")
         return
     
     class NoSpaceConfigParser(configparser.RawConfigParser):
@@ -311,7 +325,7 @@ def create_task():
                 "/rl", "HIGHEST", "/RU", "NT AUTHORITY\SYSTEM", "/IT"
             ]
 
-            # Adicione o caso para tratar o dia "Lunch"
+            # Condição para a rotina do almoço
             if selected_day == "Lunch":
                 lunch_hour = lunch_hour_entry.get()
                 lunch_task_name = f"BKP {translated_day}"
@@ -323,7 +337,7 @@ def create_task():
                 subprocess.run(lunch_task_command, capture_output=True, text=True)
 
             else:
-                # Crie a tarefa normalmente para os outros dias
+                # Cria a tarefa normalmente para os outros dias
                 subprocess.run(task_command, capture_output=True, text=True)
 
             status_label_tab4.config(text="Tarefas criadas!", foreground="blue")
@@ -360,17 +374,16 @@ status_label_tab4.pack()
 tab5 = ttk.Frame(notebook)
 notebook.add(tab5, text="Sobre")
 
-version_label_tab5 = ttk.Label(tab5, text="Versão do Programa: 4.0.3", font=("Helvetica", 12, "bold"), justify="center")
+version_label_tab5 = ttk.Label(tab5, text="Versão do Programa: 4.1.1", font=("Helvetica", 12, "bold"), justify="center")
 version_label_tab5.pack(pady=20)
 version_label_tab5 = ttk.Label(tab5, text="Programa voltado para a configuração de rotinas\n de backup automáticas do MySQL e SQL Server.", justify="center")
 version_label_tab5.pack(pady=20)
-version_label_tab5 = ttk.Label(tab5, text="Desenvolvido por Reynaldo. Compilado no dia 30/08/2023.", justify="center")
+version_label_tab5 = ttk.Label(tab5, text="Desenvolvido por Reynaldo. Compilado no dia 31/08/2023.", justify="center")
 version_label_tab5.pack(pady=20)
 
 app.mainloop()
 
 # Comando para compilação do executável
 """
-pyinstaller --onefile --icon=Utility/12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL"
---add-data "ScriptsMySQL;ScriptsMySQL" --add-data "Utility;Utility" BackupGer.py
+pyinstaller --onefile --icon=bin/12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL"--add-data "ScriptsMySQL;ScriptsMySQL" --add-data "bin;bin" BackupGer.py
 """
