@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from ttkthemes import ThemedTk
 import configparser
 import subprocess
 import functools
@@ -10,11 +11,15 @@ import ctypes
 import tempfile
 
 # Personalização do programa e da janela
-app = tk.Tk()
+app = ThemedTk(theme="adapta")
 app.title("BackupGer")
-app.geometry("400x400")
+app.geometry("400x450")
 icon_path = os.path.join(os.path.dirname(__file__), "bin", "12.ico")
 app.iconbitmap(icon_path)
+
+# Widget para criação de um app com várias abas
+notebook = ttk.Notebook(app)
+notebook.pack(pady=0, fill='both', expand=True)
 
 # Carrega a .dll pro funcionamento no Windows 7
 exe_directory = os.path.dirname(sys.executable)
@@ -24,22 +29,18 @@ try:
 except OSError as e:
     print(f"Erro ao carregar a DLL: {e}")
 
-# Aplica o tema "clam"
-style = ttk.Style()
-style.theme_use("clam")
-
-# Widget para criação de um app com várias abas
-notebook = ttk.Notebook(app)
-notebook.pack(pady=0, fill='both', expand=True)
-
 # Aba de configurações
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text="Config")
 
+# Frame para gravar o ID
+frame1_tab1 = ttk.Frame(tab1)
+frame1_tab1.pack(pady=30)
+
 # Função para salvar dados do servidor SQL
 def save_id():
     if not (id_entry.get()):
-        status_label.config(text="Erro: preencha todos os campos!", foreground="red")
+        message_label.config(text="Erro: preencha o ID!", foreground="red")
         return
     
     class NoSpaceConfigParser(configparser.RawConfigParser):
@@ -58,19 +59,26 @@ def save_id():
     
     with open(file_path, 'w') as configfile:
         config.write(configfile)
-    status_label_tab1.config(text="Salvo com sucesso!", foreground="green")
+    message_label.config(text="Salvo com sucesso!", foreground="green")
 
-title_label_tab1 = ttk.Label(tab1, text="ID do Cliente", font=("Helvetica", 12, "bold"))
+title_label_tab1 = ttk.Label(frame1_tab1, text="ID do Cliente", font=("Helvetica", 12, "bold"))
 title_label_tab1.pack(pady=10)
 
-id_entry = ttk.Entry(tab1)
+id_entry = ttk.Entry(frame1_tab1)
 id_entry.pack(pady=2)
 
-save_button = ttk.Button(tab1, text="Salvar ID", command=save_id)
+save_button = ttk.Button(frame1_tab1, text="Salvar ID", command=save_id)
 save_button.pack(pady=10)
 
-title_label_tab1 = ttk.Label(tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
-title_label_tab1.pack(pady=10)
+message_label = ttk.Label(frame1_tab1, text="", foreground="black")
+message_label.pack()
+
+# Frame para as funções do 7-Zip
+frame2_tab1 = ttk.Frame(tab1)
+frame2_tab1.pack(padx=15, pady=20)
+
+title_label_tab1 = ttk.Label(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
+title_label_tab1.grid(row=0, column=0, columnspan=2, pady=10)
 
 # Caminho para os executáveis 7-Zip no diretório bin
 seven_zip_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
@@ -104,17 +112,16 @@ def executar_7z_x64():
     except Exception as e:
         print(f"Erro ao executar 7z-x64.exe: {e}")
 
-# Frame para os botões de criação de rotina
-sevenzip_frame = ttk.Frame(tab1)
-sevenzip_frame.pack(padx=15, pady=5)
+title_label_tab1 = ttk.Label(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
+title_label_tab1.grid(row=0, column=0, columnspan=2, pady=10)
 
-# Cria um botão para executar o 7z.exe
-button_7z = ttk.Button(sevenzip_frame, text="32 Bits", command=executar_7z)
-button_7z.grid(row=0, column=0, padx=10, pady=5)
+# Botão para instalação do 7-Zip 32 bits
+button_7z = ttk.Button(frame2_tab1, text="32 Bits", command=executar_7z)
+button_7z.grid(row=1, column=0, padx=10, pady=5)
 
-# Cria um botão para executar o 7z-x64.exe
-button_7z_x64 = ttk.Button(sevenzip_frame, text="64 Bits", command=executar_7z_x64)
-button_7z_x64.grid(row=0, column=1, padx=10, pady=5)
+# Botão para instalação do 7-Zip 64 bits
+button_7z_x64 = ttk.Button(frame2_tab1, text="64 Bits", command=executar_7z_x64)
+button_7z_x64.grid(row=1, column=1, padx=10, pady=5)
 
 status_label_tab1 = ttk.Label(tab1, text="", foreground="black")
 status_label_tab1.pack()
@@ -123,8 +130,11 @@ status_label_tab1.pack()
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="MySQL")
 
+frame_tab2 = ttk.Frame(tab2)
+frame_tab2.pack(pady=135)
+
 # Título
-title_label_tab2 = ttk.Label(tab2, text="Criação de Diretórios MySQL", font=("Helvetica", 12, "bold"))
+title_label_tab2 = ttk.Label(frame_tab2, text="Criação de Diretórios MySQL", font=("Helvetica", 12, "bold"))
 title_label_tab2.pack(pady=5)
 
 # Função para criação dos diretórios
@@ -161,10 +171,10 @@ def create_directories():
 
     status_label_tab2.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
 
-create_directories_button = ttk.Button(tab2, text="Criar diretórios", command=create_directories)
+create_directories_button = ttk.Button(frame_tab2, text="Criar diretórios", command=create_directories)
 create_directories_button.pack(pady=10)
 
-status_label_tab2 = ttk.Label(tab2, text="", foreground="black")
+status_label_tab2 = ttk.Label(frame_tab2, text="", foreground="black")
 status_label_tab2.pack()
 
 # Criação de rotinas MySQL
@@ -309,14 +319,11 @@ def create_startup_routine():
     xml_content = f"""
     <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
         <Triggers>
-            <BootTrigger>
-            <Repetition>
-                <Interval>PT15M</Interval>
-                <Duration>PT15M</Duration>
-                <StopAtDurationEnd>true</StopAtDurationEnd>
-            </Repetition>
-            <Enabled>true</Enabled>
-            </BootTrigger>
+            <LogonTrigger>
+                <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
+                <Enabled>true</Enabled>
+                <Delay>PT1M</Delay>
+            </LogonTrigger>
         </Triggers>
         <Principals>
             <Principal id="Author">
@@ -347,14 +354,21 @@ def create_startup_routine():
         </Settings>
         <Actions Context="Author">
             <Exec>
-            <Command>{batch_file_path}</Command>
+                <Command>{batch_file_path}</Command>
             </Exec>
             <Exec>
-            <Command>timeout</Command>
-            <Arguments>15</Arguments>
+                <Command>timeout</Command>
+                <Arguments>60</Arguments>
             </Exec>
             <Exec>
-            <Command>{batch_file_path}</Command>
+                <Command>{batch_file_path}</Command>
+            </Exec>
+            <Exec>
+                <Command>timeout</Command>
+                <Arguments>60</Arguments>
+            </Exec>
+            <Exec>
+                <Command>{batch_file_path}</Command>
             </Exec>
         </Actions>
         </Task>
@@ -398,7 +412,10 @@ status_label_tab3.pack()
 tab4 = ttk.Frame(notebook)
 notebook.add(tab4, text="SQL")
 
-title_label_tab4 = ttk.Label(tab4, text="Criação de Diretórios SQL", font=("Helvetica", 12, "bold"))
+frame1_tab4 = ttk.Frame(tab4)
+frame1_tab4.pack(pady=15)
+
+title_label_tab4 = ttk.Label(frame1_tab4, text="Criação de Diretórios SQL", font=("Helvetica", 12, "bold"))
 title_label_tab4.pack(pady=5)
 
 def create_directories():
@@ -433,14 +450,24 @@ def create_directories():
             else:
                 shutil.copy2(source_item, target_item)
 
-        status_label.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
+        frame1_tab4_status_label.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
     except Exception as e:
-        status_label.config(text=f"Erro: {str(e)}", foreground="red")        
+    
+        frame1_tab4_status_label.config(text=f"Erro: {str(e)}", foreground="red")         
 
     temp_dir = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
 
-create_directories_button = ttk.Button(tab4, text="Criar diretórios", command=create_directories)
+create_directories_button = ttk.Button(frame1_tab4, text="Criar diretórios", command=create_directories)
 create_directories_button.pack(pady=10)
+
+frame1_tab4_status_label = ttk.Label(frame1_tab4, text="", foreground="black")
+frame1_tab4_status_label.pack()
+
+frame2_tab4 = ttk.Frame(tab4)
+frame2_tab4.pack(pady=0)
+
+title_label_tab4 = ttk.Label(frame2_tab4, text="Informações do Servidor", font=("Helvetica", 12, "bold"))
+title_label_tab4.pack(pady=5)
 
 # Função para salvar dados do servidor SQL
 def save_data():
@@ -469,25 +496,25 @@ def save_data():
     status_label.config(text="Salvo com sucesso!", foreground="green")
 
 # Títulos para as caixas de entrada
-server_name_label = ttk.Label(tab4, text="Servidor:")
+server_name_label = ttk.Label(frame2_tab4, text="Servidor:")
 server_name_label.pack(pady=2)
-server_name_entry = ttk.Entry(tab4)
+server_name_entry = ttk.Entry(frame2_tab4)
 server_name_entry.pack(pady=2)
 
-user_label = ttk.Label(tab4, text="Usuário:")
+user_label = ttk.Label(frame2_tab4, text="Usuário:")
 user_label.pack(pady=2)
-user_entry = ttk.Entry(tab4)
+user_entry = ttk.Entry(frame2_tab4)
 user_entry.pack(pady=2)
 
-password_label = ttk.Label(tab4, text="Senha:")
+password_label = ttk.Label(frame2_tab4, text="Senha:")
 password_label.pack(pady=2)
-password_entry = ttk.Entry(tab4, show='*')
+password_entry = ttk.Entry(frame2_tab4, show='*')
 password_entry.pack(pady=2)
 
-save_button = ttk.Button(tab4, text="Salvar dados", command=save_data)
+save_button = ttk.Button(frame2_tab4, text="Salvar dados", command=save_data)
 save_button.pack(pady=12)
 
-status_label = ttk.Label(tab4, text="", foreground="black")
+status_label = ttk.Label(frame2_tab4, text="", foreground="black")
 status_label.pack()
 
 tab5 = ttk.Frame(notebook)
@@ -613,14 +640,11 @@ def create_startupsql_routine():
     xml_content = f"""
     <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
         <Triggers>
-            <BootTrigger>
-            <Repetition>
-                <Interval>PT15M</Interval>
-                <Duration>PT15M</Duration>
-                <StopAtDurationEnd>true</StopAtDurationEnd>
-            </Repetition>
-            <Enabled>true</Enabled>
-            </BootTrigger>
+            <LogonTrigger>
+                <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
+                <Enabled>true</Enabled>
+                <Delay>PT1M</Delay>
+            </LogonTrigger>
         </Triggers>
         <Principals>
             <Principal id="Author">
@@ -651,14 +675,21 @@ def create_startupsql_routine():
         </Settings>
         <Actions Context="Author">
             <Exec>
-            <Command>{batch_file_path}</Command>
+                <Command>{batch_file_path}</Command>
             </Exec>
             <Exec>
-            <Command>timeout</Command>
-            <Arguments>15</Arguments>
+                <Command>timeout</Command>
+                <Arguments>60</Arguments>
             </Exec>
             <Exec>
-            <Command>{batch_file_path}</Command>
+                <Command>{batch_file_path}</Command>
+            </Exec>
+            <Exec>
+                <Command>timeout</Command>
+                <Arguments>60</Arguments>
+            </Exec>
+            <Exec>
+                <Command>{batch_file_path}</Command>
             </Exec>
         </Actions>
         </Task>
