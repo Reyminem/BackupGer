@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 set "backup_dir=C:\BKP_1.2\Backup\Almoco"
-for /f "tokens=1* delims==" %%a in (C:\BKP_1.2\Scripts\server.ini) do (
+for /f "tokens=1* delims==" %%a in (C:\BKP_1.2\ScriptsSQL\server.ini) do (
     if "%%a"=="server" set "server=%%b"
     if "%%a"=="user" set "user=%%b"
     if "%%a"=="password" set "password=%%b"
@@ -23,8 +23,8 @@ for /f "usebackq tokens=1" %%d in (`sqlcmd -S !server! -U !user! -P !password! -
 
 echo Compactando arquivos .bak em Almoco.zip...
 cd "C:\BKP_1.2\Backup\Almoco"
-"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Almoco\Almoco.zip" "*.bak"
-copy "C:\BKP_1.2\Backup\Almoco\Almoco.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Almoco"
+"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Almoco\AlmocoSQLServer.zip" "*.bak"
+copy "C:\BKP_1.2\Backup\Almoco\AlmocoSQLServer.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Almoco"
 
 echo.
 

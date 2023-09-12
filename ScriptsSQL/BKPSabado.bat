@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 set "backup_dir=C:\BKP_1.2\Backup\Sabado"
-for /f "tokens=1* delims==" %%a in (C:\BKP_1.2\Scripts\server.ini) do (
+for /f "tokens=1* delims==" %%a in (C:\BKP_1.2\ScriptsSQL\server.ini) do (
     if "%%a"=="server" set "server=%%b"
     if "%%a"=="user" set "user=%%b"
     if "%%a"=="password" set "password=%%b"
@@ -23,8 +23,8 @@ for /f "usebackq tokens=1" %%d in (`sqlcmd -S !server! -U !user! -P !password! -
 
 echo Compactando arquivos .bak em Sabado.zip...
 cd "C:\BKP_1.2\Backup\Sabado"
-"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Sabado\Sabado.zip" "*.bak"
-copy "C:\BKP_1.2\Backup\Sabado\Sabado.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Sabado"
+"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Sabado\SabadoSQLServer.zip" "*.bak"
+copy "C:\BKP_1.2\Backup\Sabado\SabadoSQLServer.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Sabado"
 
 echo.
 

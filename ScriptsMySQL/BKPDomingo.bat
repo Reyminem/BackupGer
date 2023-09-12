@@ -24,8 +24,8 @@ for /f "usebackq" %%d in (`mysql -h %host% -u %user% -p%password% -e "SHOW DATAB
 
 echo Compactando arquivos .sql em Domingo.zip...
 cd "C:\BKP_1.2\Backup\Domingo"
-"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Domingo\Domingo.zip" "*.sql"
-copy "C:\BKP_1.2\Backup\Domingo\Domingo.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Domingo"
+"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Domingo\DomingoMySQL.zip" "*.sql"
+copy "C:\BKP_1.2\Backup\Domingo\DomingoMySQL.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Domingo"
 
 echo.
 

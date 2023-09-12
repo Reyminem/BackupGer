@@ -58,10 +58,10 @@ def save_id():
     
     with open(file_path, 'w') as configfile:
         config.write(configfile)
-    status_label_tab2.config(text="Salvo com sucesso!", foreground="green")
+    status_label_tab1.config(text="Salvo com sucesso!", foreground="green")
 
-title_label_tab2 = ttk.Label(tab1, text="ID do Cliente", font=("Helvetica", 12, "bold"))
-title_label_tab2.pack(pady=10)
+title_label_tab1 = ttk.Label(tab1, text="ID do Cliente", font=("Helvetica", 12, "bold"))
+title_label_tab1.pack(pady=10)
 
 id_entry = ttk.Entry(tab1)
 id_entry.pack(pady=2)
@@ -69,8 +69,8 @@ id_entry.pack(pady=2)
 save_button = ttk.Button(tab1, text="Salvar ID", command=save_id)
 save_button.pack(pady=10)
 
-title_label_tab2 = ttk.Label(tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
-title_label_tab2.pack(pady=10)
+title_label_tab1 = ttk.Label(tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
+title_label_tab1.pack(pady=10)
 
 # Caminho para os executáveis 7-Zip no diretório bin
 seven_zip_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
@@ -91,20 +91,15 @@ def executar_7z():
         shutil.rmtree(temp_dir)
     except Exception as e:
         print(f"Erro ao executar 7z.exe: {e}")
-
-# Função para executar o 7z-x64.exe
+        
 def executar_7z_x64():
     try:
-        # Cria um diretório temporário para evitar problemas de permissão
         temp_dir = tempfile.mkdtemp()
         
-        # Copia o 7z-x64.exe para o diretório temporário
         shutil.copy2(os.path.join(seven_zip_dir, "7z-x64.exe"), temp_dir)
 
-        # Executa o 7z-x64.exe a partir do diretório temporário
         subprocess.run([os.path.join(temp_dir, "7z-x64.exe")])
 
-        # Remove o diretório temporário após a execução
         shutil.rmtree(temp_dir)
     except Exception as e:
         print(f"Erro ao executar 7z-x64.exe: {e}")
@@ -299,16 +294,90 @@ def create_mysqltask():
         else:
             status_label_tab3.config(text=f"Nenhum dia selecionado!", foreground="red")
 
-# Botão para a criação da rotina de scan para verificação
+# Função para a criação da rotina de scan para verificação
 def create_startup_routine():
-    batch_file_path = "C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe"
+    batch_file_path = r"C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe"  # Use 'r' antes da string para evitar problemas com barras invertidas
     task_name = "MySQL Verifica"
+    
+    # Use o diretório C:\BKP_1.2 como diretório temporário
+    temp_dir = r"C:\BKP_1.2"
+
+    # Defina o caminho completo para o arquivo XML dentro do diretório temporário
+    xml_file_path = os.path.join(temp_dir, "tarefa.xml")
+
+    # Defina o conteúdo XML da tarefa agendada
+    xml_content = f"""
+    <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+        <Triggers>
+            <BootTrigger>
+            <Repetition>
+                <Interval>PT15M</Interval>
+                <Duration>PT15M</Duration>
+                <StopAtDurationEnd>true</StopAtDurationEnd>
+            </Repetition>
+            <Enabled>true</Enabled>
+            </BootTrigger>
+        </Triggers>
+        <Principals>
+            <Principal id="Author">
+            <UserId>NT AUTHORITY\\SYSTEM</UserId>
+            <RunLevel>HighestAvailable</RunLevel>
+            </Principal>
+        </Principals>
+        <Settings>
+            <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
+            <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+            <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+            <AllowHardTerminate>true</AllowHardTerminate>
+            <StartWhenAvailable>false</StartWhenAvailable>
+            <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+            <IdleSettings>
+            <StopOnIdleEnd>true</StopOnIdleEnd>
+            <RestartOnIdle>false</RestartOnIdle>
+            </IdleSettings>
+            <AllowStartOnDemand>true</AllowStartOnDemand>
+            <Enabled>true</Enabled>
+            <Hidden>false</Hidden>
+            <RunOnlyIfIdle>false</RunOnlyIfIdle>
+            <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+            <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+            <WakeToRun>false</WakeToRun>
+            <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+            <Priority>7</Priority>
+        </Settings>
+        <Actions Context="Author">
+            <Exec>
+            <Command>{batch_file_path}</Command>
+            </Exec>
+            <Exec>
+            <Command>timeout</Command>
+            <Arguments>15</Arguments>
+            </Exec>
+            <Exec>
+            <Command>{batch_file_path}</Command>
+            </Exec>
+        </Actions>
+        </Task>
+
+    """
+
+    # Salve o conteúdo XML no arquivo dentro do diretório temporário
+    with open(xml_file_path, "w") as xml_file:
+        xml_file.write(xml_content)
+
+    # Crie a tarefa agendada usando o comando schtasks
     task_command = [
-        "schtasks", "/create", "/tn", task_name, "/tr", batch_file_path,
-        "/sc", "onstart", "/f", "/rl", "HIGHEST", "/RU", "NT AUTHORITY\SYSTEM", "/IT"
+        "schtasks", "/create", "/tn", task_name, "/xml", xml_file_path, "/F"
     ]
-    subprocess.run(task_command, capture_output=True, text=True)
-    status_label_tab3.config(text="Rotina de verificação criada!", foreground="blue")
+
+    try:
+        subprocess.run(task_command, capture_output=True, text=True, check=True)
+        status_label_tab3.config(text="Rotina de verificação criada!", foreground="blue")
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao criar a tarefa agendada: {e}")
+    finally:
+        # Exclua apenas o arquivo XML temporário
+        os.remove(xml_file_path)    
 
 # Frame para os botões de criação de rotina
 create_buttons_frame = ttk.Frame(tab3)
@@ -318,7 +387,7 @@ create_buttons_frame.pack(padx=15, pady=2)
 create_mysqltask_button = ttk.Button(create_buttons_frame, text="Criar tarefas", command=create_mysqltask)
 create_mysqltask_button.grid(row=0, column=0, padx=10, pady=5)
 
-# Botão para criar a rotina de scan para envio de e-mail
+# Botão para criar a rotina de verificação
 create_startup_routine_button = ttk.Button(create_buttons_frame, text="Rotina de verificação", command=create_startup_routine)
 create_startup_routine_button.grid(row=0, column=1, padx=10, pady=5)
 
@@ -531,14 +600,88 @@ create_task_button = ttk.Button(create_buttons_frame, text="Criar tarefas", comm
 create_task_button.grid(row=0, column=0, padx=10, pady=5)
 
 def create_startupsql_routine():
-    batch_file_path = "C:\BKP_1.2\ScriptsSQL\BackupVerif.exe"
+    batch_file_path = r"C:\BKP_1.2\ScriptsSQL\BackupVerif.exe"  # Use 'r' antes da string para evitar problemas com barras invertidas
     task_name = "SQL Verifica"
+    
+    # Use o diretório C:\BKP_1.2 como diretório temporário
+    temp_dir = r"C:\BKP_1.2"
+
+    # Defina o caminho completo para o arquivo XML dentro do diretório temporário
+    xml_file_path = os.path.join(temp_dir, "tarefa.xml")
+
+    # Defina o conteúdo XML da tarefa agendada
+    xml_content = f"""
+    <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+        <Triggers>
+            <BootTrigger>
+            <Repetition>
+                <Interval>PT15M</Interval>
+                <Duration>PT15M</Duration>
+                <StopAtDurationEnd>true</StopAtDurationEnd>
+            </Repetition>
+            <Enabled>true</Enabled>
+            </BootTrigger>
+        </Triggers>
+        <Principals>
+            <Principal id="Author">
+            <UserId>NT AUTHORITY\\SYSTEM</UserId>
+            <RunLevel>HighestAvailable</RunLevel>
+            </Principal>
+        </Principals>
+        <Settings>
+            <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
+            <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+            <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+            <AllowHardTerminate>true</AllowHardTerminate>
+            <StartWhenAvailable>false</StartWhenAvailable>
+            <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+            <IdleSettings>
+            <StopOnIdleEnd>true</StopOnIdleEnd>
+            <RestartOnIdle>false</RestartOnIdle>
+            </IdleSettings>
+            <AllowStartOnDemand>true</AllowStartOnDemand>
+            <Enabled>true</Enabled>
+            <Hidden>false</Hidden>
+            <RunOnlyIfIdle>false</RunOnlyIfIdle>
+            <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+            <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+            <WakeToRun>false</WakeToRun>
+            <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+            <Priority>7</Priority>
+        </Settings>
+        <Actions Context="Author">
+            <Exec>
+            <Command>{batch_file_path}</Command>
+            </Exec>
+            <Exec>
+            <Command>timeout</Command>
+            <Arguments>15</Arguments>
+            </Exec>
+            <Exec>
+            <Command>{batch_file_path}</Command>
+            </Exec>
+        </Actions>
+        </Task>
+
+    """
+
+    # Salve o conteúdo XML no arquivo dentro do diretório temporário
+    with open(xml_file_path, "w") as xml_file:
+        xml_file.write(xml_content)
+
+    # Crie a tarefa agendada usando o comando schtasks
     task_command = [
-        "schtasks", "/create", "/tn", task_name, "/tr", batch_file_path,
-        "/sc", "onstart", "/f", "/rl", "HIGHEST", "/RU", "NT AUTHORITY\SYSTEM", "/IT"
+        "schtasks", "/create", "/tn", task_name, "/xml", xml_file_path, "/F"
     ]
-    subprocess.run(task_command, capture_output=True, text=True)
-    status_label_tab5.config(text="Rotina de verificação criada!", foreground="blue")
+
+    try:
+        subprocess.run(task_command, capture_output=True, text=True, check=True)
+        status_label_tab5.config(text="Rotina de verificação criada!", foreground="blue")
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao criar a tarefa agendada: {e}")
+    finally:
+        # Exclua apenas o arquivo XML temporário
+        os.remove(xml_file_path)
     
 create_startup_routinesql_button = ttk.Button(create_buttons_frame, text="Rotina de verificação", command=create_startupsql_routine)
 create_startup_routinesql_button.grid(row=0, column=1, padx=10, pady=5)

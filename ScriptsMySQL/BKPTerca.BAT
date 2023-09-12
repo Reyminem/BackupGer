@@ -24,8 +24,8 @@ for /f "usebackq" %%d in (`mysql -h %host% -u %user% -p%password% -e "SHOW DATAB
 
 echo Compactando arquivos .sql em Terca.zip...
 cd "C:\BKP_1.2\Backup\Terca"
-"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Terca\Terca.zip" "*.sql"
-copy "C:\BKP_1.2\Backup\Terca\Terca.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Terca"
+"C:\Program Files\7-Zip\7z.exe" a -tzip "C:\BKP_1.2\Backup\Terca\TercaMySQL.zip" "*.sql"
+copy "C:\BKP_1.2\Backup\Terca\TercaMySQL.zip" "C:\Program Files (x86)\12informatica\BackupDrive\Terca"
 
 echo.
 

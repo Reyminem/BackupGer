@@ -2,7 +2,7 @@
 setlocal
 
 set "backupFolder=C:\Program Files (x86)\12informatica\BackupDrive"
-set "batPath=C:\BKP_1.2\Scripts\SendEmail.bat"
+set "batPath=C:\BKP_1.2\ScriptsMySQL\SendEmail.bat"
 set "daysThreshold=8"
 
 for /r "%backupFolder%" %%G in (*) do (
