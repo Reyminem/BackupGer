@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from ttkthemes import ThemedTk
 import configparser
 import subprocess
 import functools
@@ -11,9 +10,9 @@ import ctypes
 import tempfile
 
 # Personalização do programa e da janela
-app = ThemedTk(theme="adapta")
+app = tk.Tk()
 app.title("BackupGer")
-app.geometry("400x450")
+app.geometry("400x400")
 icon_path = os.path.join(os.path.dirname(__file__), "bin", "12.ico")
 app.iconbitmap(icon_path)
 
@@ -61,13 +60,13 @@ def save_id():
         config.write(configfile)
     message_label.config(text="Salvo com sucesso!", foreground="green")
 
-title_label_tab1 = ttk.Label(frame1_tab1, text="ID do Cliente", font=("Helvetica", 12, "bold"))
+title_label_tab1 = ttk.Label(frame1_tab1, text="ID do Cliente", takefocus=True, font=("Helvetica", 12, "bold"))
 title_label_tab1.pack(pady=10)
 
 id_entry = ttk.Entry(frame1_tab1)
 id_entry.pack(pady=2)
 
-save_button = ttk.Button(frame1_tab1, text="Salvar ID", command=save_id)
+save_button = ttk.Button(frame1_tab1, text="Salvar ID", takefocus=False, command=save_id)
 save_button.pack(pady=10)
 
 message_label = ttk.Label(frame1_tab1, text="", foreground="black")
@@ -116,11 +115,11 @@ title_label_tab1 = ttk.Label(frame2_tab1, text="Instalar 7-Zip", font=("Helvetic
 title_label_tab1.grid(row=0, column=0, columnspan=2, pady=10)
 
 # Botão para instalação do 7-Zip 32 bits
-button_7z = ttk.Button(frame2_tab1, text="32 Bits", command=executar_7z)
+button_7z = ttk.Button(frame2_tab1, text="32 Bits", takefocus=False, command=executar_7z)
 button_7z.grid(row=1, column=0, padx=10, pady=5)
 
 # Botão para instalação do 7-Zip 64 bits
-button_7z_x64 = ttk.Button(frame2_tab1, text="64 Bits", command=executar_7z_x64)
+button_7z_x64 = ttk.Button(frame2_tab1, text="64 Bits", takefocus=False, command=executar_7z_x64)
 button_7z_x64.grid(row=1, column=1, padx=10, pady=5)
 
 status_label_tab1 = ttk.Label(tab1, text="", foreground="black")
@@ -171,7 +170,7 @@ def create_directories():
 
     status_label_tab2.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
 
-create_directories_button = ttk.Button(frame_tab2, text="Criar diretórios", command=create_directories)
+create_directories_button = ttk.Button(frame_tab2, text="Criar diretórios", takefocus=False, command=create_directories)
 create_directories_button.pack(pady=10)
 
 status_label_tab2 = ttk.Label(frame_tab2, text="", foreground="black")
@@ -191,14 +190,14 @@ days_label.pack(pady=1)
 
 # Traduz os dias para português
 day_translation = {
-    "Sun": "Dom",
-    "Mon": "Seg",
-    "Tue": "Ter",
-    "Wed": "Qua",
-    "Thu": "Qui",
-    "Fri": "Sex",
-    "Sat": "Sáb",
-    "Lunch": "Alm",
+    "Sun": "Domingo",
+    "Mon": "Segunda",
+    "Tue": "Terça",
+    "Wed": "Quarta",
+    "Thu": "Quinta",
+    "Fri": "Sexta",
+    "Sat": "Sábado",
+    "Lunch": "Almoço",
 }
 
 # Legenda para os botões dos dias
@@ -207,40 +206,41 @@ day_labels.append("Lunch")
 selectedmysql_day_var = tk.StringVar()
 
 # Função para a seleção dos dias
-def select_daymysql(day, button):
+def select_daymysql(day, checkbutton_var):
     selectedmysql_days = selectedmysql_day_var.get().split(",")
 
     if day in selectedmysql_days:
         selectedmysql_days.remove(day)
         translated_day = day_translation[day]
-        button.config(text=f"{translated_day} ☐")
+        checkbutton_var.set(0)  # Desmarcar a caixa de seleção
     else:
         selectedmysql_days.append(day)
         translated_day = day_translation[day]
-        button.config(text=f"{translated_day} ☑")
+        checkbutton_var.set(1)  # Marcar a caixa de seleção
 
     selectedmysql_day_var.set(",".join(selectedmysql_days))
 
-# Frame para os botões
 day_buttons_frame = ttk.Frame(tab3)
-day_buttons_frame.pack(padx=15, pady=2)
+day_buttons_frame.pack(padx=20, pady=10)
 
-# Loop para a criação dos botões
-day_buttons = []
+# Configurar colunas da grade para ter o mesmo tamanho
+day_buttons_frame.grid_columnconfigure(0, weight=1)
+day_buttons_frame.grid_columnconfigure(1, weight=1)
+
+day_checkbuttons = []
 
 for i in range(8):
-    row = i // 2
-    col = i % 2
+    row = i // 3
+    col = i % 3
 
     translated_day = day_translation[day_labels[i]]
-    day_button_text = f"{translated_day} ☐ "
-    day_button = ttk.Button(day_buttons_frame, text=day_button_text)
-    day_button.grid(row=row, column=col, padx=5, pady=5)
-    day_buttons.append(day_button)
+    day_checkbutton_var = tk.IntVar()  # Variável para controlar o estado da caixa de seleção
+    day_checkbutton = ttk.Checkbutton(day_buttons_frame, text=translated_day, variable=day_checkbutton_var)
+    day_checkbutton.grid(row=row, column=col, padx=5, pady=5, sticky="w")  # Usar "w" para alinhar à esquerda
+    day_checkbuttons.append(day_checkbutton)
 
     day_label = day_labels[i]
-    translated_day_label = day_translation[day_label]
-    day_button.config(command=functools.partial(select_daymysql, day_label, day_button))
+    day_checkbutton.config(command=functools.partial(select_daymysql, day_label, day_checkbutton_var))
 
 # Caixa para a entrada do horário
 hour_label = ttk.Label(tab3, text="Hora:")
@@ -300,7 +300,7 @@ def create_mysqltask():
                 # Cria a tarefa normalmente para os outros dias
                 subprocess.run(task_command, capture_output=True, text=True)
 
-            status_label_tab3.config(text="Rotinas MySQL criadas!", foreground="blue")
+            status_label_tab3.config(text="Rotinas MySQL criadas!", foreground="green")
         else:
             status_label_tab3.config(text=f"Nenhum dia selecionado!", foreground="red")
 
@@ -395,7 +395,7 @@ def create_startup_routine():
 
 # Frame para os botões de criação de rotina
 create_buttons_frame = ttk.Frame(tab3)
-create_buttons_frame.pack(padx=15, pady=2)
+create_buttons_frame.pack(padx=15, pady=15)
 
 # Botão para criar tarefas
 create_mysqltask_button = ttk.Button(create_buttons_frame, text="Criar tarefas", command=create_mysqltask)
@@ -530,38 +530,41 @@ day_labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 day_labels.append("Lunch")
 selectedsql_day_var = tk.StringVar()
 
-def select_daysql(day, button):
+def select_daysql(day, checkbutton_var):
     selectedsql_days = selectedsql_day_var.get().split(",")
 
     if day in selectedsql_days:
         selectedsql_days.remove(day)
         translated_day = day_translation[day]
-        button.config(text=f"{translated_day} ☐")
+        checkbutton_var.set(0)  # Desmarcar a caixa de seleção
     else:
         selectedsql_days.append(day)
         translated_day = day_translation[day]
-        button.config(text=f"{translated_day} ☑")
+        checkbutton_var.set(1)  # Marcar a caixa de seleção
 
     selectedsql_day_var.set(",".join(selectedsql_days))
 
 day_buttons_frame = ttk.Frame(tab5)
-day_buttons_frame.pack(padx=15, pady=2)
+day_buttons_frame.pack(padx=20, pady=10)
 
-day_buttons = []
+# Configurar colunas da grade para ter o mesmo tamanho
+day_buttons_frame.grid_columnconfigure(0, weight=1)
+day_buttons_frame.grid_columnconfigure(1, weight=1)
+
+day_checkbuttons = []
 
 for i in range(8):
-    row = i // 2
-    col = i % 2
+    row = i // 3
+    col = i % 3
 
     translated_day = day_translation[day_labels[i]]
-    day_button_text = f"{translated_day} ☐ "
-    day_button = ttk.Button(day_buttons_frame, text=day_button_text)
-    day_button.grid(row=row, column=col, padx=5, pady=5)
-    day_buttons.append(day_button)
+    day_checkbutton_var = tk.IntVar()  # Variável para controlar o estado da caixa de seleção
+    day_checkbutton = ttk.Checkbutton(day_buttons_frame, text=translated_day, variable=day_checkbutton_var)
+    day_checkbutton.grid(row=row, column=col, padx=5, pady=5, sticky="w")  # Usar "w" para alinhar à esquerda
+    day_checkbuttons.append(day_checkbutton)
 
     day_label = day_labels[i]
-    translated_day_label = day_translation[day_label]
-    day_button.config(command=functools.partial(select_daysql, day_label, day_button))
+    day_checkbutton.config(command=functools.partial(select_daysql, day_label, day_checkbutton_var))
 
 hour_label = ttk.Label(tab5, text="Hora:")
 hour_label.pack()
@@ -616,12 +619,12 @@ def create_sqltask():
             else:
                 subprocess.run(task_command, capture_output=True, text=True)
 
-            status_label_tab5.config(text="Rotinas SQL criadas!", foreground="blue")
+            status_label_tab5.config(text="Rotinas SQL criadas!", foreground="green")
         else:
             status_label_tab5.config(text=f"Nenhum dia selecionado!", foreground="red")
 
 create_buttons_frame = ttk.Frame(tab5)
-create_buttons_frame.pack(padx=15, pady=2)
+create_buttons_frame.pack(padx=15, pady=15)
 
 create_task_button = ttk.Button(create_buttons_frame, text="Criar tarefas", command=create_sqltask)
 create_task_button.grid(row=0, column=0, padx=10, pady=5)
@@ -722,7 +725,11 @@ status_label_tab5.pack()
 
 app.mainloop()
 
-# Comando para compilação do executável
+# Anotações úteis
 """
 pyinstaller --onefile --icon=bin/12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL"--add-data "ScriptsMySQL;ScriptsMySQL" --add-data "bin;bin" BackupGer.py
+--distpath ~/Desktop BackupGer.py
+
+from ttkthemes import ThemedTk
+app = ThemedTk(theme="breeze")
 """
