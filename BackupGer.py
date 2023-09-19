@@ -1,32 +1,24 @@
 import tkinter as tk
 from tkinter import ttk
+from ttkthemes import ThemedTk
 import configparser
 import subprocess
 import functools
 import os
 import shutil
-import sys
-import ctypes
 import tempfile
+import winshell
 
 # Personalização do programa e da janela
-app = tk.Tk()
+app = ThemedTk(theme="breeze")
 app.title("BackupGer")
-app.geometry("400x400")
+app.geometry("460x470")
 icon_path = os.path.join(os.path.dirname(__file__), "bin", "12.ico")
 app.iconbitmap(icon_path)
 
 # Widget para criação de um app com várias abas
 notebook = ttk.Notebook(app)
 notebook.pack(pady=0, fill='both', expand=True)
-
-# Carrega a .dll pro funcionamento no Windows 7
-exe_directory = os.path.dirname(sys.executable)
-dll_path = os.path.join(exe_directory, "bin", "api-ms-win-core-path-l1-1-0.dll")
-try:
-    dll = ctypes.WinDLL(dll_path)
-except OSError as e:
-    print(f"Erro ao carregar a DLL: {e}")
 
 # Aba de configurações
 tab1 = ttk.Frame(notebook)
@@ -36,7 +28,7 @@ notebook.add(tab1, text="Config")
 frame1_tab1 = ttk.Frame(tab1)
 frame1_tab1.pack(pady=30)
 
-# Função para salvar dados do servidor SQL
+# Função para salvar o ID do cliente
 def save_id():
     if not (id_entry.get()):
         message_label.config(text="Erro: preencha o ID!", foreground="red")
@@ -130,7 +122,7 @@ tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="MySQL")
 
 frame_tab2 = ttk.Frame(tab2)
-frame_tab2.pack(pady=135)
+frame_tab2.pack(pady=25)
 
 # Título
 title_label_tab2 = ttk.Label(frame_tab2, text="Criação de Diretórios MySQL", font=("Helvetica", 12, "bold"))
@@ -140,13 +132,13 @@ title_label_tab2.pack(pady=5)
 def create_directories():
     base_path = "C:\\BKP_1.2"
     subdirectories = ["ScriptsMySQL", "Backup\\Domingo", "Backup\\Almoco", "Backup\\Segunda", "Backup\\Terca",
-                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado"]
+                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado", "Backup\\Desligar"]
 
     for directory in subdirectories:
         os.makedirs(os.path.join(base_path, directory), exist_ok=True)
 
     base_path_2 = "C:\\Program Files (x86)\\12informatica\\BackupDrive"
-    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"]
+    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Desligar"]
 
     for directory in subdirectories_2:
         os.makedirs(os.path.join(base_path_2, directory), exist_ok=True)
@@ -160,6 +152,9 @@ def create_directories():
     scripts_source_dir = os.path.join(script_dir, "ScriptsMySQL")
 
     for item in os.listdir(scripts_source_dir):
+        if item == "BKPDesligar.bat":
+                continue
+
         source_item = os.path.join(scripts_source_dir, item)
         target_item = os.path.join(script_target_dir, item)
         
@@ -168,6 +163,10 @@ def create_directories():
         else:
             shutil.copy2(source_item, target_item)
 
+    source_exe = os.path.join(script_dir, "bin", "BackupVerif.exe")
+    target_exe = os.path.join(script_target_dir, "BackupVerif.exe")
+    shutil.copy(source_exe, target_exe)
+
     status_label_tab2.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
 
 create_directories_button = ttk.Button(frame_tab2, text="Criar diretórios", takefocus=False, command=create_directories)
@@ -175,6 +174,61 @@ create_directories_button.pack(pady=10)
 
 status_label_tab2 = ttk.Label(frame_tab2, text="", foreground="black")
 status_label_tab2.pack()
+
+frame2_tab2 = ttk.Frame(tab2)
+frame2_tab2.pack(pady=1)
+
+# Título
+title_label_tab2 = ttk.Label(frame2_tab2, text="Backup ao Desligar", font=("Helvetica", 12, "bold"))
+title_label_tab2.pack(pady=5)
+
+def mysql_shutdown():
+    base_path = "C:\\BKP_1.2"
+    subdirectories = ["Backup\\Desligar"]
+
+    for directory in subdirectories:
+        os.makedirs(os.path.join(base_path, directory), exist_ok=True)
+
+    base_path_2 = "C:\\Program Files (x86)\\12informatica\\BackupDrive"
+    subdirectories_2 = ["Desligar"]
+
+    for directory in subdirectories_2:
+        os.makedirs(os.path.join(base_path_2, directory), exist_ok=True)
+
+    # Copia os arquivos da pasta "ScriptsMySQL" para "C:\BKP_1.2\ScriptsMySQL"
+    script_target_dir = "C:\\BKP_1.2\\ScriptsMySQL"
+    if not os.path.exists(script_target_dir):
+        os.makedirs(script_target_dir)
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_source_path = os.path.join(script_dir, "ScriptsMySQL", "BKPDesligar.bat")
+    script_target_path = os.path.join(script_target_dir, "BKPDesligar.bat")
+    source_exe = os.path.join(script_dir, "bin", "BackupVerif.exe")
+    target_exe = os.path.join(script_target_dir, "BackupVerif.exe")
+
+    try:
+        shutil.copy2(script_source_path, script_target_path)
+        shutil.copy2(source_exe, target_exe)
+
+        desktop = winshell.desktop()
+        path = os.path.join(desktop, "Desligar.lnk")
+        target = r"C:\BKP_1.2\ScriptsMySQL\BKPDesligar.BAT"
+        
+        shortcut = winshell.shortcut(path)
+        shortcut.path = target
+        shortcut.icon_location = (r"%SystemRoot%\system32\SHELL32.dll", 27)  # Ícone de desligamento do Windows
+        shortcut.write()
+        
+        frame2_tab2_status_label.config(text="Atalho criado com sucesso!", foreground="green")
+    except Exception as e:
+        frame2_tab2_status_label.config(text=f"Erro ao criar atalho: {str(e)}", foreground="red")
+
+# Botão para criar o atalho
+mysql_shutdown_button = ttk.Button(frame2_tab2, text="Criar atalho", command=mysql_shutdown)
+mysql_shutdown_button.pack(pady=10)
+
+frame2_tab2_status_label = ttk.Label(frame2_tab2, text="", foreground="black")
+frame2_tab2_status_label.pack()
 
 # Criação de rotinas MySQL
 tab3 = ttk.Frame(notebook)
@@ -306,16 +360,16 @@ def create_mysqltask():
 
 # Função para a criação da rotina de scan para verificação
 def create_startup_routine():
-    batch_file_path = r"C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe"  # Use 'r' antes da string para evitar problemas com barras invertidas
+    batch_file_path = r"C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe"  # Usa 'r' antes da string para evitar problemas com barras invertidas
     task_name = "MySQL Verifica"
     
-    # Use o diretório C:\BKP_1.2 como diretório temporário
+    # Usa o diretório C:\BKP_1.2 como diretório temporário
     temp_dir = r"C:\BKP_1.2"
 
-    # Defina o caminho completo para o arquivo XML dentro do diretório temporário
+    # Define o caminho completo para o arquivo XML dentro do diretório temporário
     xml_file_path = os.path.join(temp_dir, "tarefa.xml")
 
-    # Defina o conteúdo XML da tarefa agendada
+    # Define o conteúdo XML da tarefa agendada
     xml_content = f"""
     <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
         <Triggers>
@@ -334,7 +388,7 @@ def create_startup_routine():
         <Settings>
             <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
             <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-            <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+            <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
             <AllowHardTerminate>true</AllowHardTerminate>
             <StartWhenAvailable>false</StartWhenAvailable>
             <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
@@ -375,11 +429,11 @@ def create_startup_routine():
 
     """
 
-    # Salve o conteúdo XML no arquivo dentro do diretório temporário
+    # Salva o conteúdo XML no arquivo dentro do diretório temporário
     with open(xml_file_path, "w") as xml_file:
         xml_file.write(xml_content)
 
-    # Crie a tarefa agendada usando o comando schtasks
+    # Cria a tarefa agendada usando o comando schtasks
     task_command = [
         "schtasks", "/create", "/tn", task_name, "/xml", xml_file_path, "/F"
     ]
@@ -393,6 +447,32 @@ def create_startup_routine():
         # Exclua apenas o arquivo XML temporário
         os.remove(xml_file_path)    
 
+def replace_mysql_line_shutdown(script_path):
+    try:
+        with open(script_path, 'r') as script_file:
+            lines = script_file.readlines()
+
+        if lines:
+            lines[-1] = "shutdown -s -t 15"
+
+        with open(script_path, 'w') as script_file:
+            script_file.writelines(lines)
+
+        status_label_tab3.config(text="Alterado com sucesso!", foreground="green")
+    except Exception as e:
+        status_label_tab3.config(text=f"Erro ao alterar scripts: {str(e)}", foreground="red")  
+
+def shutdown_mysql_scripts():
+    scripts_directory = "C:\\BKP_1.2\\ScriptsMySQL"
+    
+    # Verificar se o diretório existe
+    if os.path.exists(scripts_directory):
+        for root, _, files in os.walk(scripts_directory):
+            for filename in files:
+                if filename.endswith(".bat"):
+                    script_path = os.path.join(root, filename)
+                    replace_mysql_line_shutdown(script_path)
+
 # Frame para os botões de criação de rotina
 create_buttons_frame = ttk.Frame(tab3)
 create_buttons_frame.pack(padx=15, pady=15)
@@ -405,6 +485,10 @@ create_mysqltask_button.grid(row=0, column=0, padx=10, pady=5)
 create_startup_routine_button = ttk.Button(create_buttons_frame, text="Rotina de verificação", command=create_startup_routine)
 create_startup_routine_button.grid(row=0, column=1, padx=10, pady=5)
 
+# Botão para adicionar shutdown aos scripts
+shutdown_button = ttk.Button(create_buttons_frame, text="Desligar após execução", command=shutdown_mysql_scripts)
+shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=7, sticky="n")
+
 status_label_tab3 = ttk.Label(tab3, text="", foreground="black")
 status_label_tab3.pack()
 
@@ -413,7 +497,7 @@ tab4 = ttk.Frame(notebook)
 notebook.add(tab4, text="SQL")
 
 frame1_tab4 = ttk.Frame(tab4)
-frame1_tab4.pack(pady=15)
+frame1_tab4.pack(pady=10)
 
 title_label_tab4 = ttk.Label(frame1_tab4, text="Criação de Diretórios SQL", font=("Helvetica", 12, "bold"))
 title_label_tab4.pack(pady=5)
@@ -421,18 +505,17 @@ title_label_tab4.pack(pady=5)
 def create_directories():
     base_path = "C:\\BKP_1.2"
     subdirectories = ["ScriptsSQL", "Backup\\Domingo", "Backup\\Almoco", "Backup\\Segunda", "Backup\\Terca",
-                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado"]
+                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado", "Backup\\Desligar"]
 
     for directory in subdirectories:
         os.makedirs(os.path.join(base_path, directory), exist_ok=True)
 
     base_path_2 = "C:\\Program Files (x86)\\12informatica\\BackupDrive"
-    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"]
+    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Desligar"]
 
     for directory in subdirectories_2:
         os.makedirs(os.path.join(base_path_2, directory), exist_ok=True)
 
-    # Copia os arquivos da pasta "ScriptsSQL" para "C:\BKP_1.2\ScriptsSQL"
     script_target_dir = "C:\\BKP_1.2\\ScriptsSQL"
     if not os.path.exists(script_target_dir):
         os.makedirs(script_target_dir)
@@ -442,6 +525,9 @@ def create_directories():
 
     try:
         for item in os.listdir(scripts_source_dir):
+            if item == "BKPDesligar.bat":
+                continue
+
             source_item = os.path.join(scripts_source_dir, item)
             target_item = os.path.join(script_target_dir, item)
 
@@ -450,15 +536,17 @@ def create_directories():
             else:
                 shutil.copy2(source_item, target_item)
 
+        source_exe = os.path.join(script_dir, "bin", "BackupVerif.exe")
+        target_exe = os.path.join(script_target_dir, "BackupVerif.exe")
+        shutil.copy(source_exe, target_exe)
+
         frame1_tab4_status_label.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
     except Exception as e:
     
         frame1_tab4_status_label.config(text=f"Erro: {str(e)}", foreground="red")         
 
-    temp_dir = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
-
 create_directories_button = ttk.Button(frame1_tab4, text="Criar diretórios", command=create_directories)
-create_directories_button.pack(pady=10)
+create_directories_button.pack(pady=5)
 
 frame1_tab4_status_label = ttk.Label(frame1_tab4, text="", foreground="black")
 frame1_tab4_status_label.pack()
@@ -467,7 +555,7 @@ frame2_tab4 = ttk.Frame(tab4)
 frame2_tab4.pack(pady=0)
 
 title_label_tab4 = ttk.Label(frame2_tab4, text="Informações do Servidor", font=("Helvetica", 12, "bold"))
-title_label_tab4.pack(pady=5)
+title_label_tab4.pack(ipady=0)
 
 # Função para salvar dados do servidor SQL
 def save_data():
@@ -495,27 +583,92 @@ def save_data():
         config.write(configfile)
     status_label.config(text="Salvo com sucesso!", foreground="green")
 
-# Títulos para as caixas de entrada
-server_name_label = ttk.Label(frame2_tab4, text="Servidor:")
-server_name_label.pack(pady=2)
-server_name_entry = ttk.Entry(frame2_tab4)
-server_name_entry.pack(pady=2)
+# Subframe para rótulos e entradas do servidor
+server_frame = ttk.Frame(frame2_tab4)
+server_frame.pack(pady=1)
 
-user_label = ttk.Label(frame2_tab4, text="Usuário:")
-user_label.pack(pady=2)
-user_entry = ttk.Entry(frame2_tab4)
-user_entry.pack(pady=2)
+server_name_label = ttk.Label(server_frame, text="Servidor:")
+server_name_entry = ttk.Entry(server_frame)
+server_name_label.grid(row=0, column=0, padx=0, pady=3, sticky="e")
+server_name_entry.grid(row=0, column=1, padx=0, pady=6, sticky="w")
 
-password_label = ttk.Label(frame2_tab4, text="Senha:")
-password_label.pack(pady=2)
-password_entry = ttk.Entry(frame2_tab4, show='*')
-password_entry.pack(pady=2)
+# Subframe para rótulos e entradas do usuário
+user_frame = ttk.Frame(frame2_tab4)
+user_frame.pack(pady=1)
+
+user_label = ttk.Label(user_frame, text="Usuário:")
+user_entry = ttk.Entry(user_frame)
+user_label.grid(row=0, column=0, padx=1, pady=3, sticky="e")
+user_entry.grid(row=0, column=1, padx=0, pady=6, sticky="w")
+
+# Subframe para rótulos e entradas da senha
+password_frame = ttk.Frame(frame2_tab4)
+password_frame.pack(pady=1)
+
+password_label = ttk.Label(password_frame, text="Senha:")
+password_entry = ttk.Entry(password_frame, show='*')
+password_label.grid(row=0, column=0, padx=4, pady=3, sticky="e")
+password_entry.grid(row=0, column=1, padx=1, pady=6, sticky="w")
 
 save_button = ttk.Button(frame2_tab4, text="Salvar dados", command=save_data)
-save_button.pack(pady=12)
+save_button.pack(pady=8)
 
 status_label = ttk.Label(frame2_tab4, text="", foreground="black")
 status_label.pack()
+
+frame3_tab4 = ttk.Frame(tab4)
+frame3_tab4.pack(pady=1)
+
+# Título
+title_label_tab4 = ttk.Label(frame3_tab4, text="Backup ao Desligar", font=("Helvetica", 12, "bold"))
+title_label_tab4.pack(pady=5)
+
+def sql_shutdown():
+
+    base_path = "C:\\BKP_1.2"
+    subdirectories = ["Backup\\Desligar"]
+
+    for directory in subdirectories:
+        os.makedirs(os.path.join(base_path, directory), exist_ok=True)
+
+    base_path_2 = "C:\\Program Files (x86)\\12informatica\\BackupDrive"
+    subdirectories_2 = ["Desligar"]
+
+    for directory in subdirectories_2:
+        os.makedirs(os.path.join(base_path_2, directory), exist_ok=True)
+
+    script_target_dir = "C:\\BKP_1.2\\ScriptsSQL"
+    if not os.path.exists(script_target_dir):
+        os.makedirs(script_target_dir)
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_source_path = os.path.join(script_dir, "ScriptsSQL", "BKPDesligar.bat")
+    script_target_path = os.path.join(script_target_dir, "BKPDesligar.bat")
+    source_exe = os.path.join(script_dir, "bin", "BackupVerif.exe")
+    target_exe = os.path.join(script_target_dir, "BackupVerif.exe")
+
+    try:
+        shutil.copy2(script_source_path, script_target_path)
+        shutil.copy2(source_exe, target_exe)
+
+        desktop = winshell.desktop()
+        path = os.path.join(desktop, "Desligar.lnk")
+        target = r"C:\BKP_1.2\ScriptsSQL\BKPDesligar.BAT"
+        
+        shortcut = winshell.shortcut(path)
+        shortcut.path = target
+        shortcut.icon_location = (r"%SystemRoot%\system32\SHELL32.dll", 27)  # Ícone de desligamento do Windows
+        shortcut.write()
+        
+        frame3_tab4_status_label.config(text="Atalho criado com sucesso!", foreground="green")
+    except Exception as e:
+        frame3_tab4_status_label.config(text=f"Erro ao criar atalho: {str(e)}", foreground="red")
+
+sql_shutdown_button = ttk.Button(frame3_tab4, text="Criar atalho", command=sql_shutdown)
+sql_shutdown_button.pack(pady=10)
+
+frame3_tab4_status_label = ttk.Label(frame3_tab4, text="", foreground="black")
+frame3_tab4_status_label.pack()
 
 tab5 = ttk.Frame(notebook)
 notebook.add(tab5, text="Rotinas SQL")
@@ -630,16 +783,16 @@ create_task_button = ttk.Button(create_buttons_frame, text="Criar tarefas", comm
 create_task_button.grid(row=0, column=0, padx=10, pady=5)
 
 def create_startupsql_routine():
-    batch_file_path = r"C:\BKP_1.2\ScriptsSQL\BackupVerif.exe"  # Use 'r' antes da string para evitar problemas com barras invertidas
+    batch_file_path = r"C:\BKP_1.2\ScriptsSQL\BackupVerif.exe"  # Usa 'r' antes da string para evitar problemas com barras invertidas
     task_name = "SQL Verifica"
     
-    # Use o diretório C:\BKP_1.2 como diretório temporário
+    # Usa o diretório C:\BKP_1.2 como diretório temporário
     temp_dir = r"C:\BKP_1.2"
 
-    # Defina o caminho completo para o arquivo XML dentro do diretório temporário
+    # Define o caminho completo para o arquivo XML dentro do diretório temporário
     xml_file_path = os.path.join(temp_dir, "tarefa.xml")
 
-    # Defina o conteúdo XML da tarefa agendada
+    # Define o conteúdo XML da tarefa agendada
     xml_content = f"""
     <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
         <Triggers>
@@ -658,7 +811,7 @@ def create_startupsql_routine():
         <Settings>
             <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
             <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-            <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+            <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
             <AllowHardTerminate>true</AllowHardTerminate>
             <StartWhenAvailable>false</StartWhenAvailable>
             <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
@@ -699,11 +852,11 @@ def create_startupsql_routine():
 
     """
 
-    # Salve o conteúdo XML no arquivo dentro do diretório temporário
+    # Salva o conteúdo XML no arquivo dentro do diretório temporário
     with open(xml_file_path, "w") as xml_file:
         xml_file.write(xml_content)
 
-    # Crie a tarefa agendada usando o comando schtasks
+    # Cria a tarefa agendada usando o comando schtasks
     task_command = [
         "schtasks", "/create", "/tn", task_name, "/xml", xml_file_path, "/F"
     ]
@@ -716,9 +869,38 @@ def create_startupsql_routine():
     finally:
         # Exclua apenas o arquivo XML temporário
         os.remove(xml_file_path)
+
+def replace_sql_line_shutdown(script_path):
+    try:
+        with open(script_path, 'r') as script_file:
+            lines = script_file.readlines()
+
+        if lines:
+            lines[-1] = "shutdown -s -t 15"
+
+        with open(script_path, 'w') as script_file:
+            script_file.writelines(lines)
+
+        status_label_tab5.config(text="Alterado com sucesso!", foreground="green")
+    except Exception as e:
+        status_label_tab5.config(text=f"Erro ao alterar scripts: {str(e)}", foreground="red")
+
+def shutdown_sql_scripts():
+    scripts_directory = "C:\\BKP_1.2\\ScriptsSQL"
     
+    # Verificar se o diretório existe
+    if os.path.exists(scripts_directory):
+        for root, _, files in os.walk(scripts_directory):
+            for filename in files:
+                if filename.endswith(".bat"):
+                    script_path = os.path.join(root, filename)
+                    replace_sql_line_shutdown(script_path)
+
 create_startup_routinesql_button = ttk.Button(create_buttons_frame, text="Rotina de verificação", command=create_startupsql_routine)
 create_startup_routinesql_button.grid(row=0, column=1, padx=10, pady=5)
+
+shutdown_button = ttk.Button(create_buttons_frame, text="Desligar após execução", command=shutdown_sql_scripts)
+shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=7, sticky="n")
 
 status_label_tab5 = ttk.Label(tab5, text="", foreground="black")
 status_label_tab5.pack()
