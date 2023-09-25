@@ -1,6 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
-from ttkthemes import ThemedTk
+import customtkinter
 import configparser
 import subprocess
 import functools
@@ -8,38 +7,43 @@ import os
 import shutil
 import tempfile
 import winshell
+import sys
 
 # Personalização do programa e da janela
-app = ThemedTk(theme="breeze")
+
+customtkinter.set_appearance_mode("light")
+customtkinter.set_default_color_theme("dark-blue")
+
+app = customtkinter.CTk()
 app.title("BackupGer")
-app.geometry("460x470")
+app.geometry("500x500")
 icon_path = os.path.join(os.path.dirname(__file__), "bin", "12.ico")
 app.iconbitmap(icon_path)
 
 # Widget para criação de um app com várias abas
-notebook = ttk.Notebook(app)
-notebook.pack(pady=0, fill='both', expand=True)
+notebook = customtkinter.CTkTabview(app)
+notebook.pack(padx=15, fill='both', expand=True)
 
 # Aba de configurações
-tab1 = ttk.Frame(notebook)
-notebook.add(tab1, text="Config")
+tab1 = customtkinter.CTkFrame(notebook)
+notebook.add("Config")
 
-# Frame para gravar o ID
-frame1_tab1 = ttk.Frame(tab1)
-frame1_tab1.pack(pady=30)
+# CTkFrame para gravar o ID
+frame1_tab1 = customtkinter.CTkFrame(notebook.tab("Config"))
+frame1_tab1.pack(fill="x", padx=130, pady=(10, 0))
 
 # Função para salvar o ID do cliente
 def save_id():
     if not (id_entry.get()):
-        message_label.config(text="Erro: preencha o ID!", foreground="red")
+        message_label.configure(text="Erro: preencha o ID!", text_color="red")
         return
     
     class NoSpaceConfigParser(configparser.RawConfigParser):
         def write(self, fp, space_around_delimiters=False):
             super().write(fp, space_around_delimiters=False)
     
-    config = NoSpaceConfigParser()
-    config['ID'] = {
+    configure = NoSpaceConfigParser()
+    configure['ID'] = {
         'id_cliente': id_entry.get()
     }
 
@@ -49,27 +53,27 @@ def save_id():
     file_path = os.path.join(save_directory, "id.ini")
     
     with open(file_path, 'w') as configfile:
-        config.write(configfile)
-    message_label.config(text="Salvo com sucesso!", foreground="green")
+        configure.write(configfile)
+    message_label.configure(text="Salvo com sucesso!", text_color="green")
 
-title_label_tab1 = ttk.Label(frame1_tab1, text="ID do Cliente", takefocus=True, font=("Helvetica", 12, "bold"))
-title_label_tab1.pack(pady=10)
+title_label_tab1 = customtkinter.CTkLabel(frame1_tab1, text="ID do Cliente", font=("Helvetica", 14, "bold"))
+title_label_tab1.pack(pady=0)
 
-id_entry = ttk.Entry(frame1_tab1)
+id_entry = customtkinter.CTkEntry(frame1_tab1)
 id_entry.pack(pady=2)
 
-save_button = ttk.Button(frame1_tab1, text="Salvar ID", takefocus=False, command=save_id)
-save_button.pack(pady=10)
+save_button = customtkinter.CTkButton(frame1_tab1, text="Salvar ID", command=save_id)
+save_button.pack(pady=(0, 15))
 
-message_label = ttk.Label(frame1_tab1, text="", foreground="black")
+message_label = customtkinter.CTkLabel(notebook.tab("Config"), text="")
 message_label.pack()
 
-# Frame para as funções do 7-Zip
-frame2_tab1 = ttk.Frame(tab1)
-frame2_tab1.pack(padx=15, pady=20)
+# CTkFrame para as funções do 7-Zip
+frame2_tab1 = customtkinter.CTkFrame(notebook.tab("Config"))
+frame2_tab1.pack(padx=15, pady=15)
 
-title_label_tab1 = ttk.Label(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
-title_label_tab1.grid(row=0, column=0, columnspan=2, pady=10)
+title_label_tab1 = customtkinter.CTkLabel(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 14, "bold"))
+title_label_tab1.grid(row=0, column=0, columnspan=2, pady=5)
 
 # Caminho para os executáveis 7-Zip no diretório bin
 seven_zip_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
@@ -103,30 +107,30 @@ def executar_7z_x64():
     except Exception as e:
         print(f"Erro ao executar 7z-x64.exe: {e}")
 
-title_label_tab1 = ttk.Label(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 12, "bold"))
+title_label_tab1 = customtkinter.CTkLabel(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 14, "bold"))
 title_label_tab1.grid(row=0, column=0, columnspan=2, pady=10)
 
 # Botão para instalação do 7-Zip 32 bits
-button_7z = ttk.Button(frame2_tab1, text="32 Bits", takefocus=False, command=executar_7z)
-button_7z.grid(row=1, column=0, padx=10, pady=5)
+button_7z = customtkinter.CTkButton(frame2_tab1, text="32 Bits", command=executar_7z)
+button_7z.grid(row=1, column=0, padx=10, pady=(0, 15))
 
 # Botão para instalação do 7-Zip 64 bits
-button_7z_x64 = ttk.Button(frame2_tab1, text="64 Bits", takefocus=False, command=executar_7z_x64)
-button_7z_x64.grid(row=1, column=1, padx=10, pady=5)
+button_7z_x64 = customtkinter.CTkButton(frame2_tab1, text="64 Bits", command=executar_7z_x64)
+button_7z_x64.grid(row=1, column=1, padx=10, pady=(0, 15))
 
-status_label_tab1 = ttk.Label(tab1, text="", foreground="black")
+status_label_tab1 = customtkinter.CTkLabel(notebook.tab("Config"), text="")
 status_label_tab1.pack()
 
 # Aba de diretórios MySQL
-tab2 = ttk.Frame(notebook)
-notebook.add(tab2, text="MySQL")
+tab2 = customtkinter.CTkFrame(notebook)
+notebook.add("MySQL")
 
-frame_tab2 = ttk.Frame(tab2)
-frame_tab2.pack(pady=25)
+frame_tab2 = customtkinter.CTkFrame(notebook.tab("MySQL"))
+frame_tab2.pack(pady=10)
 
 # Título
-title_label_tab2 = ttk.Label(frame_tab2, text="Criação de Diretórios MySQL", font=("Helvetica", 12, "bold"))
-title_label_tab2.pack(pady=5)
+title_label_tab2 = customtkinter.CTkLabel(frame_tab2, text="Criação de Diretórios MySQL", font=("Helvetica", 14, "bold"))
+title_label_tab2.pack(fill="x", pady=5, padx=10)
 
 # Função para criação dos diretórios
 def create_directories():
@@ -167,19 +171,19 @@ def create_directories():
     target_exe = os.path.join(script_target_dir, "BackupVerif.exe")
     shutil.copy(source_exe, target_exe)
 
-    status_label_tab2.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
+    status_label_tab2.configure(text="Diretórios e arquivos criados com sucesso!", text_color="green")
 
-create_directories_button = ttk.Button(frame_tab2, text="Criar diretórios", takefocus=False, command=create_directories)
-create_directories_button.pack(pady=10)
+create_directories_button = customtkinter.CTkButton(frame_tab2, text="Criar diretórios", command=create_directories)
+create_directories_button.pack(pady=(5, 15))
 
-status_label_tab2 = ttk.Label(frame_tab2, text="", foreground="black")
+status_label_tab2 = customtkinter.CTkLabel(notebook.tab("MySQL"), text="")
 status_label_tab2.pack()
 
-frame2_tab2 = ttk.Frame(tab2)
-frame2_tab2.pack(pady=1)
+frame2_tab2 = customtkinter.CTkFrame(notebook.tab("MySQL"))
+frame2_tab2.pack(fill="x", pady=5, padx=125)
 
 # Título
-title_label_tab2 = ttk.Label(frame2_tab2, text="Backup ao Desligar", font=("Helvetica", 12, "bold"))
+title_label_tab2 = customtkinter.CTkLabel(frame2_tab2, text="Backup ao Desligar", font=("Helvetica", 14, "bold"))
 title_label_tab2.pack(pady=5)
 
 def mysql_shutdown():
@@ -219,27 +223,27 @@ def mysql_shutdown():
         shortcut.icon_location = (r"%SystemRoot%\system32\SHELL32.dll", 27)  # Ícone de desligamento do Windows
         shortcut.write()
         
-        frame2_tab2_status_label.config(text="Atalho criado com sucesso!", foreground="green")
+        frame2_tab2_status_label.configure(text="Atalho criado com sucesso!", text_color="green")
     except Exception as e:
-        frame2_tab2_status_label.config(text=f"Erro ao criar atalho: {str(e)}", foreground="red")
+        frame2_tab2_status_label.configure(text=f"Erro ao criar atalho: {str(e)}", text_color="red")
 
 # Botão para criar o atalho
-mysql_shutdown_button = ttk.Button(frame2_tab2, text="Criar atalho", command=mysql_shutdown)
-mysql_shutdown_button.pack(pady=10)
+mysql_shutdown_button = customtkinter.CTkButton(frame2_tab2, text="Criar atalho", command=mysql_shutdown)
+mysql_shutdown_button.pack(pady=(5, 15))
 
-frame2_tab2_status_label = ttk.Label(frame2_tab2, text="", foreground="black")
+frame2_tab2_status_label = customtkinter.CTkLabel(notebook.tab("MySQL"), text="")
 frame2_tab2_status_label.pack()
 
 # Criação de rotinas MySQL
-tab3 = ttk.Frame(notebook)
-notebook.add(tab3, text="Rotinas MySQL")
+tab3 = customtkinter.CTkFrame(notebook)
+notebook.add("Rotinas MySQL")
 
 # Título
-title_label_tab3 = ttk.Label(tab3, text="Rotinas MySQL", font=("Helvetica", 12, "bold"))
+title_label_tab3 = customtkinter.CTkLabel(notebook.tab("Rotinas MySQL"), text="Rotinas MySQL", font=("Helvetica", 14, "bold"))
 title_label_tab3.pack(pady=5)
 
 # Caixas de seleção para os dias
-days_label = ttk.Label(tab3, text="Selecione os dias:")
+days_label = customtkinter.CTkLabel(notebook.tab("Rotinas MySQL"), text="Selecione os dias:")
 days_label.pack(pady=1)
 
 # Traduz os dias para português
@@ -274,7 +278,7 @@ def select_daymysql(day, checkbutton_var):
 
     selectedmysql_day_var.set(",".join(selectedmysql_days))
 
-day_buttons_frame = ttk.Frame(tab3)
+day_buttons_frame = customtkinter.CTkFrame(notebook.tab("Rotinas MySQL"))
 day_buttons_frame.pack(padx=20, pady=10)
 
 # Configurar colunas da grade para ter o mesmo tamanho
@@ -282,6 +286,7 @@ day_buttons_frame.grid_columnconfigure(0, weight=1)
 day_buttons_frame.grid_columnconfigure(1, weight=1)
 
 day_checkbuttons = []
+mysqlday_checkbutton_vars = []
 
 for i in range(8):
     row = i // 3
@@ -289,27 +294,28 @@ for i in range(8):
 
     translated_day = day_translation[day_labels[i]]
     day_checkbutton_var = tk.IntVar()  # Variável para controlar o estado da caixa de seleção
-    day_checkbutton = ttk.Checkbutton(day_buttons_frame, text=translated_day, variable=day_checkbutton_var)
+    day_checkbutton = customtkinter.CTkCheckBox(day_buttons_frame, text=translated_day, variable=day_checkbutton_var)
     day_checkbutton.grid(row=row, column=col, padx=5, pady=5, sticky="w")  # Usar "w" para alinhar à esquerda
     day_checkbuttons.append(day_checkbutton)
+    mysqlday_checkbutton_vars.append(day_checkbutton_var)
 
     day_label = day_labels[i]
-    day_checkbutton.config(command=functools.partial(select_daymysql, day_label, day_checkbutton_var))
+    day_checkbutton.configure(command=functools.partial(select_daymysql, day_label, day_checkbutton_var))
 
 # Caixa para a entrada do horário
-hour_label = ttk.Label(tab3, text="Hora:")
+hour_label = customtkinter.CTkLabel(notebook.tab("Rotinas MySQL"), text="Hora:")
 hour_label.pack()
 
-hour_var = tk.StringVar(tab3, value="16:30") # Placeholder
-hour_entry = ttk.Entry(tab3, textvariable=hour_var)
+hour_var = tk.StringVar(notebook.tab("Rotinas MySQL"), value="16:30") # Placeholder
+hour_entry = customtkinter.CTkEntry(notebook.tab("Rotinas MySQL"), textvariable=hour_var)
 hour_entry.pack()
 
 # Caixa para a entrada do horário do almoço
-lunch_hour_label = ttk.Label(tab3, text="Horário do Almoço:")
+lunch_hour_label = customtkinter.CTkLabel(notebook.tab("Rotinas MySQL"), text="Horário do Almoço:")
 lunch_hour_label.pack()
 
-lunch_var = tk.StringVar(tab3, value="12:00") # Placeholder
-lunch_hour_entry = ttk.Entry(tab3, textvariable=lunch_var)
+lunch_var = tk.StringVar(notebook.tab("Rotinas MySQL"), value="12:00") # Placeholder
+lunch_hour_entry = customtkinter.CTkEntry(notebook.tab("Rotinas MySQL"), textvariable=lunch_var)
 lunch_hour_entry.pack()
 
 mysql_bat_files = {
@@ -354,12 +360,16 @@ def create_mysqltask():
                 # Cria a tarefa normalmente para os outros dias
                 subprocess.run(task_command, capture_output=True, text=True)
 
-            status_label_tab3.config(text="Rotinas MySQL criadas!", foreground="green")
+            status_label_tab3.configure(text="Rotinas MySQL criadas!", text_color="green")
         else:
-            status_label_tab3.config(text=f"Nenhum dia selecionado!", foreground="red")
+            status_label_tab3.configure(text=f"Nenhum dia selecionado!", text_color="red")
+    
+    # Desmarcar todas as caixas de seleção após criar as tarefas
+    for day_checkbutton_var in mysqlday_checkbutton_vars:
+        day_checkbutton_var.set(0)
 
 # Função para a criação da rotina de scan para verificação
-def create_startup_routine():
+def create_mysql_verif():
     batch_file_path = r"C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe"  # Usa 'r' antes da string para evitar problemas com barras invertidas
     task_name = "MySQL Verifica"
     
@@ -370,64 +380,51 @@ def create_startup_routine():
     xml_file_path = os.path.join(temp_dir, "tarefa.xml")
 
     # Define o conteúdo XML da tarefa agendada
-    xml_content = f"""
-    <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-        <Triggers>
-            <LogonTrigger>
-                <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
-                <Enabled>true</Enabled>
-                <Delay>PT1M</Delay>
-            </LogonTrigger>
-        </Triggers>
-        <Principals>
-            <Principal id="Author">
-            <UserId>NT AUTHORITY\\SYSTEM</UserId>
-            <RunLevel>HighestAvailable</RunLevel>
-            </Principal>
-        </Principals>
-        <Settings>
-            <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
-            <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-            <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-            <AllowHardTerminate>true</AllowHardTerminate>
-            <StartWhenAvailable>false</StartWhenAvailable>
-            <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-            <IdleSettings>
-            <StopOnIdleEnd>true</StopOnIdleEnd>
-            <RestartOnIdle>false</RestartOnIdle>
-            </IdleSettings>
-            <AllowStartOnDemand>true</AllowStartOnDemand>
-            <Enabled>true</Enabled>
-            <Hidden>false</Hidden>
-            <RunOnlyIfIdle>false</RunOnlyIfIdle>
-            <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
-            <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
-            <WakeToRun>false</WakeToRun>
-            <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
-            <Priority>7</Priority>
-        </Settings>
-        <Actions Context="Author">
-            <Exec>
-                <Command>{batch_file_path}</Command>
-            </Exec>
-            <Exec>
-                <Command>timeout</Command>
-                <Arguments>60</Arguments>
-            </Exec>
-            <Exec>
-                <Command>{batch_file_path}</Command>
-            </Exec>
-            <Exec>
-                <Command>timeout</Command>
-                <Arguments>60</Arguments>
-            </Exec>
-            <Exec>
-                <Command>{batch_file_path}</Command>
-            </Exec>
-        </Actions>
-        </Task>
-
-    """
+    xml_content = f"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <Triggers>
+    <LogonTrigger>
+      <Enabled>true</Enabled>
+    </LogonTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>NT AUTHORITY\\SYSTEM</UserId>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>false</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe</Command>
+    </Exec>
+    <Exec>
+      <Command>timeout</Command>
+      <Arguments>60</Arguments>
+    </Exec>
+    <Exec>
+      <Command>C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe</Command>
+    </Exec>
+  </Actions>
+</Task>"""
 
     # Salva o conteúdo XML no arquivo dentro do diretório temporário
     with open(xml_file_path, "w") as xml_file:
@@ -440,7 +437,7 @@ def create_startup_routine():
 
     try:
         subprocess.run(task_command, capture_output=True, text=True, check=True)
-        status_label_tab3.config(text="Rotina de verificação criada!", foreground="blue")
+        status_label_tab3.configure(text="Rotina de verificação criada!", text_color="blue")
     except subprocess.CalledProcessError as e:
         print(f"Erro ao criar a tarefa agendada: {e}")
     finally:
@@ -458,9 +455,9 @@ def replace_mysql_line_shutdown(script_path):
         with open(script_path, 'w') as script_file:
             script_file.writelines(lines)
 
-        status_label_tab3.config(text="Alterado com sucesso!", foreground="green")
+        status_label_tab3.configure(text="Alterado com sucesso!", text_color="green")
     except Exception as e:
-        status_label_tab3.config(text=f"Erro ao alterar scripts: {str(e)}", foreground="red")  
+        status_label_tab3.configure(text=f"Erro ao alterar scripts: {str(e)}", text_color="red")  
 
 def shutdown_mysql_scripts():
     scripts_directory = "C:\\BKP_1.2\\ScriptsMySQL"
@@ -473,33 +470,33 @@ def shutdown_mysql_scripts():
                     script_path = os.path.join(root, filename)
                     replace_mysql_line_shutdown(script_path)
 
-# Frame para os botões de criação de rotina
-create_buttons_frame = ttk.Frame(tab3)
-create_buttons_frame.pack(padx=15, pady=15)
+# CTkFrame para os botões de criação de rotina
+create_buttons_frame = customtkinter.CTkFrame(notebook.tab("Rotinas MySQL"))
+create_buttons_frame.pack(padx=15, pady=(15, 5))
 
 # Botão para criar tarefas
-create_mysqltask_button = ttk.Button(create_buttons_frame, text="Criar tarefas", command=create_mysqltask)
-create_mysqltask_button.grid(row=0, column=0, padx=10, pady=5)
+create_mysqltask_button = customtkinter.CTkButton(create_buttons_frame, text="Criar tarefas", command=create_mysqltask)
+create_mysqltask_button.grid(row=0, column=0, padx=10, pady=(15, 5))
 
 # Botão para criar a rotina de verificação
-create_startup_routine_button = ttk.Button(create_buttons_frame, text="Rotina de verificação", command=create_startup_routine)
-create_startup_routine_button.grid(row=0, column=1, padx=10, pady=5)
+create_startup_routine_button = customtkinter.CTkButton(create_buttons_frame, text="Rotina de verificação", command=create_mysql_verif)
+create_startup_routine_button.grid(row=0, column=1, padx=10, pady=(15, 5))
 
 # Botão para adicionar shutdown aos scripts
-shutdown_button = ttk.Button(create_buttons_frame, text="Desligar após execução", command=shutdown_mysql_scripts)
-shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=7, sticky="n")
+shutdown_button = customtkinter.CTkButton(create_buttons_frame, text="Desligar após execução", command=shutdown_mysql_scripts)
+shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 15), sticky="n")
 
-status_label_tab3 = ttk.Label(tab3, text="", foreground="black")
+status_label_tab3 = customtkinter.CTkLabel(notebook.tab("Rotinas MySQL"), text="")
 status_label_tab3.pack()
 
 # Diretórios SQL
-tab4 = ttk.Frame(notebook)
-notebook.add(tab4, text="SQL")
+tab4 = customtkinter.CTkFrame(notebook)
+notebook.add("SQL")
 
-frame1_tab4 = ttk.Frame(tab4)
-frame1_tab4.pack(pady=10)
+frame1_tab4 = customtkinter.CTkFrame(notebook.tab("SQL"))
+frame1_tab4.pack(fill="x", pady=(5, 0), padx=125)
 
-title_label_tab4 = ttk.Label(frame1_tab4, text="Criação de Diretórios SQL", font=("Helvetica", 12, "bold"))
+title_label_tab4 = customtkinter.CTkLabel(frame1_tab4, text="Criação de Diretórios SQL", font=("Helvetica", 14, "bold"))
 title_label_tab4.pack(pady=5)
 
 def create_directories():
@@ -540,35 +537,32 @@ def create_directories():
         target_exe = os.path.join(script_target_dir, "BackupVerif.exe")
         shutil.copy(source_exe, target_exe)
 
-        frame1_tab4_status_label.config(text="Diretórios e arquivos criados com sucesso!", foreground="green")
+        frame1_tab4_status_label.configure(text="Diretórios e arquivos criados com sucesso!", text_color="green")
     except Exception as e:
     
-        frame1_tab4_status_label.config(text=f"Erro: {str(e)}", foreground="red")         
+        frame1_tab4_status_label.configure(text=f"Erro: {str(e)}", text_color="red")         
 
-create_directories_button = ttk.Button(frame1_tab4, text="Criar diretórios", command=create_directories)
-create_directories_button.pack(pady=5)
+    # Obtém o caminho da pasta temporária onde os arquivos foram extraídos
+    temp_dir = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
 
-frame1_tab4_status_label = ttk.Label(frame1_tab4, text="", foreground="black")
+create_directories_button = customtkinter.CTkButton(frame1_tab4, text="Criar diretórios", command=create_directories)
+create_directories_button.pack(pady=(5, 15))
+
+frame1_tab4_status_label = customtkinter.CTkLabel(notebook.tab("SQL"), text="")
 frame1_tab4_status_label.pack()
-
-frame2_tab4 = ttk.Frame(tab4)
-frame2_tab4.pack(pady=0)
-
-title_label_tab4 = ttk.Label(frame2_tab4, text="Informações do Servidor", font=("Helvetica", 12, "bold"))
-title_label_tab4.pack(ipady=0)
 
 # Função para salvar dados do servidor SQL
 def save_data():
     if not (server_name_entry.get() and user_entry.get() and password_entry.get()):
-        status_label.config(text="Erro: preencha todos os campos!", foreground="red")
+        status_label.configure(text="Erro: preencha todos os campos!", text_color="red")
         return
     
     class NoSpaceConfigParser(configparser.RawConfigParser):
         def write(self, fp, space_around_delimiters=False):
             super().write(fp, space_around_delimiters=False)
     
-    config = NoSpaceConfigParser()
-    config['Server'] = {
+    configure = NoSpaceConfigParser()
+    configure['Server'] = {
         'Server': server_name_entry.get(),
         'User': user_entry.get(),
         'Password': password_entry.get()
@@ -580,47 +574,42 @@ def save_data():
     file_path = os.path.join(save_directory, 'server.ini')
     
     with open(file_path, 'w') as configfile:
-        config.write(configfile)
-    status_label.config(text="Salvo com sucesso!", foreground="green")
+        configure.write(configfile)
+    status_label.configure(text="Salvo com sucesso!", text_color="green")
 
-# Subframe para rótulos e entradas do servidor
-server_frame = ttk.Frame(frame2_tab4)
-server_frame.pack(pady=1)
-
-server_name_label = ttk.Label(server_frame, text="Servidor:")
-server_name_entry = ttk.Entry(server_frame)
-server_name_label.grid(row=0, column=0, padx=0, pady=3, sticky="e")
-server_name_entry.grid(row=0, column=1, padx=0, pady=6, sticky="w")
-
-# Subframe para rótulos e entradas do usuário
-user_frame = ttk.Frame(frame2_tab4)
-user_frame.pack(pady=1)
-
-user_label = ttk.Label(user_frame, text="Usuário:")
-user_entry = ttk.Entry(user_frame)
-user_label.grid(row=0, column=0, padx=1, pady=3, sticky="e")
-user_entry.grid(row=0, column=1, padx=0, pady=6, sticky="w")
-
-# Subframe para rótulos e entradas da senha
-password_frame = ttk.Frame(frame2_tab4)
-password_frame.pack(pady=1)
-
-password_label = ttk.Label(password_frame, text="Senha:")
-password_entry = ttk.Entry(password_frame, show='*')
-password_label.grid(row=0, column=0, padx=4, pady=3, sticky="e")
-password_entry.grid(row=0, column=1, padx=1, pady=6, sticky="w")
-
-save_button = ttk.Button(frame2_tab4, text="Salvar dados", command=save_data)
-save_button.pack(pady=8)
-
-status_label = ttk.Label(frame2_tab4, text="", foreground="black")
-status_label.pack()
-
-frame3_tab4 = ttk.Frame(tab4)
-frame3_tab4.pack(pady=1)
+# Crie um único frame para todos os elementos
+input_frame = customtkinter.CTkFrame(notebook.tab("SQL"))
+input_frame.pack(fill="x", pady=(0, 0), padx=125)
 
 # Título
-title_label_tab4 = ttk.Label(frame3_tab4, text="Backup ao Desligar", font=("Helvetica", 12, "bold"))
+title_label_tab4 = customtkinter.CTkLabel(input_frame, text="Informações do Servidor", font=("Helvetica", 16, "bold"))
+title_label_tab4.pack(pady=(5, 0))
+
+# Entrada do servidor com placeholder
+server_name_entry = customtkinter.CTkEntry(input_frame, placeholder_text="Servidor")
+server_name_entry.pack(pady=(10, 0))
+
+# Entrada do usuário com placeholder
+user_entry = customtkinter.CTkEntry(input_frame, placeholder_text="Usuário")
+user_entry.pack(pady=(10, 0))
+
+# Entrada da senha com placeholder
+password_entry = customtkinter.CTkEntry(input_frame, show='*', placeholder_text="Senha")
+password_entry.pack(pady=(10, 0))
+
+# Botão de salvar centralizado
+save_button = customtkinter.CTkButton(input_frame, text="Salvar dados", command=save_data)
+save_button.pack(pady=(10, 15))
+
+# Status label centralizado
+status_label = customtkinter.CTkLabel(notebook.tab("SQL"), text="")
+status_label.pack()
+
+frame3_tab4 = customtkinter.CTkFrame(notebook.tab("SQL"))
+frame3_tab4.pack(fill="x", pady=(0, 0), padx=125)
+
+# Título
+title_label_tab4 = customtkinter.CTkLabel(frame3_tab4, text="Backup ao Desligar", font=("Helvetica", 14, "bold"))
 title_label_tab4.pack(pady=5)
 
 def sql_shutdown():
@@ -660,23 +649,23 @@ def sql_shutdown():
         shortcut.icon_location = (r"%SystemRoot%\system32\SHELL32.dll", 27)  # Ícone de desligamento do Windows
         shortcut.write()
         
-        frame3_tab4_status_label.config(text="Atalho criado com sucesso!", foreground="green")
+        frame3_tab4_status_label.configure(text="Atalho criado com sucesso!", text_color="green")
     except Exception as e:
-        frame3_tab4_status_label.config(text=f"Erro ao criar atalho: {str(e)}", foreground="red")
+        frame3_tab4_status_label.configure(text=f"Erro ao criar atalho: {str(e)}", text_color="red")
 
-sql_shutdown_button = ttk.Button(frame3_tab4, text="Criar atalho", command=sql_shutdown)
-sql_shutdown_button.pack(pady=10)
+sql_shutdown_button = customtkinter.CTkButton(frame3_tab4, text="Criar atalho", command=sql_shutdown)
+sql_shutdown_button.pack(pady=(5, 15))
 
-frame3_tab4_status_label = ttk.Label(frame3_tab4, text="", foreground="black")
+frame3_tab4_status_label = customtkinter.CTkLabel(notebook.tab("SQL"), text="")
 frame3_tab4_status_label.pack()
 
-tab5 = ttk.Frame(notebook)
-notebook.add(tab5, text="Rotinas SQL")
+tab5 = customtkinter.CTkFrame(notebook)
+notebook.add("Rotinas SQL")
 
-title_label_tab5 = ttk.Label(tab5, text="Rotinas SQL", font=("Helvetica", 12, "bold"))
+title_label_tab5 = customtkinter.CTkLabel(notebook.tab("Rotinas SQL"), text="Rotinas SQL", font=("Helvetica", 14, "bold"))
 title_label_tab5.pack(pady=5)
 
-days_label = ttk.Label(tab5, text="Selecione os dias:")
+days_label = customtkinter.CTkLabel(notebook.tab("Rotinas SQL"), text="Selecione os dias:")
 days_label.pack(pady=1)
 
 day_labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -689,15 +678,15 @@ def select_daysql(day, checkbutton_var):
     if day in selectedsql_days:
         selectedsql_days.remove(day)
         translated_day = day_translation[day]
-        checkbutton_var.set(0)  # Desmarcar a caixa de seleção
+        checkbutton_var.set(0)
     else:
         selectedsql_days.append(day)
         translated_day = day_translation[day]
-        checkbutton_var.set(1)  # Marcar a caixa de seleção
+        checkbutton_var.set(1)
 
     selectedsql_day_var.set(",".join(selectedsql_days))
 
-day_buttons_frame = ttk.Frame(tab5)
+day_buttons_frame = customtkinter.CTkFrame(notebook.tab("Rotinas SQL"))
 day_buttons_frame.pack(padx=20, pady=10)
 
 # Configurar colunas da grade para ter o mesmo tamanho
@@ -705,32 +694,34 @@ day_buttons_frame.grid_columnconfigure(0, weight=1)
 day_buttons_frame.grid_columnconfigure(1, weight=1)
 
 day_checkbuttons = []
+sqlday_checkbutton_vars = []
 
 for i in range(8):
     row = i // 3
     col = i % 3
 
     translated_day = day_translation[day_labels[i]]
-    day_checkbutton_var = tk.IntVar()  # Variável para controlar o estado da caixa de seleção
-    day_checkbutton = ttk.Checkbutton(day_buttons_frame, text=translated_day, variable=day_checkbutton_var)
-    day_checkbutton.grid(row=row, column=col, padx=5, pady=5, sticky="w")  # Usar "w" para alinhar à esquerda
+    day_checkbutton_var = tk.IntVar()
+    day_checkbutton = customtkinter.CTkCheckBox(day_buttons_frame, text=translated_day, variable=day_checkbutton_var)
+    day_checkbutton.grid(row=row, column=col, padx=5, pady=5, sticky="w")
     day_checkbuttons.append(day_checkbutton)
+    sqlday_checkbutton_vars.append(day_checkbutton_var)
 
     day_label = day_labels[i]
-    day_checkbutton.config(command=functools.partial(select_daysql, day_label, day_checkbutton_var))
+    day_checkbutton.configure(command=functools.partial(select_daysql, day_label, day_checkbutton_var))
 
-hour_label = ttk.Label(tab5, text="Hora:")
+hour_label = customtkinter.CTkLabel(notebook.tab("Rotinas SQL"), text="Hora:")
 hour_label.pack()
 
 hour_varsql = tk.StringVar(value="16:30") 
-hour_entry = ttk.Entry(tab5, textvariable=hour_var)
+hour_entry = customtkinter.CTkEntry(notebook.tab("Rotinas SQL"), textvariable=hour_var)
 hour_entry.pack()
 
-lunch_hour_label = ttk.Label(tab5, text="Horário do Almoço:")
+lunch_hour_label = customtkinter.CTkLabel(notebook.tab("Rotinas SQL"), text="Horário do Almoço:")
 lunch_hour_label.pack()
 
 lunch_varsql = tk.StringVar(value="12:00") 
-lunch_hour_entry = ttk.Entry(tab5, textvariable=lunch_var)
+lunch_hour_entry = customtkinter.CTkEntry(notebook.tab("Rotinas SQL"), textvariable=lunch_var)
 lunch_hour_entry.pack()
 
 bat_files = {
@@ -772,17 +763,17 @@ def create_sqltask():
             else:
                 subprocess.run(task_command, capture_output=True, text=True)
 
-            status_label_tab5.config(text="Rotinas SQL criadas!", foreground="green")
+            status_label_tab5.configure(text="Rotinas SQL criadas!", text_color="green")
         else:
-            status_label_tab5.config(text=f"Nenhum dia selecionado!", foreground="red")
+            status_label_tab5.configure(text=f"Nenhum dia selecionado!", text_color="red")
 
-create_buttons_frame = ttk.Frame(tab5)
+    for day_checkbutton_var in sqlday_checkbutton_vars:
+        day_checkbutton_var.set(0)
+
+create_buttons_frame = customtkinter.CTkFrame(notebook.tab("Rotinas SQL"))
 create_buttons_frame.pack(padx=15, pady=15)
 
-create_task_button = ttk.Button(create_buttons_frame, text="Criar tarefas", command=create_sqltask)
-create_task_button.grid(row=0, column=0, padx=10, pady=5)
-
-def create_startupsql_routine():
+def create_sql_verif():
     batch_file_path = r"C:\BKP_1.2\ScriptsSQL\BackupVerif.exe"  # Usa 'r' antes da string para evitar problemas com barras invertidas
     task_name = "SQL Verifica"
     
@@ -793,64 +784,51 @@ def create_startupsql_routine():
     xml_file_path = os.path.join(temp_dir, "tarefa.xml")
 
     # Define o conteúdo XML da tarefa agendada
-    xml_content = f"""
-    <Task version="1.6" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-        <Triggers>
-            <LogonTrigger>
-                <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
-                <Enabled>true</Enabled>
-                <Delay>PT1M</Delay>
-            </LogonTrigger>
-        </Triggers>
-        <Principals>
-            <Principal id="Author">
-            <UserId>NT AUTHORITY\\SYSTEM</UserId>
-            <RunLevel>HighestAvailable</RunLevel>
-            </Principal>
-        </Principals>
-        <Settings>
-            <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
-            <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-            <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-            <AllowHardTerminate>true</AllowHardTerminate>
-            <StartWhenAvailable>false</StartWhenAvailable>
-            <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-            <IdleSettings>
-            <StopOnIdleEnd>true</StopOnIdleEnd>
-            <RestartOnIdle>false</RestartOnIdle>
-            </IdleSettings>
-            <AllowStartOnDemand>true</AllowStartOnDemand>
-            <Enabled>true</Enabled>
-            <Hidden>false</Hidden>
-            <RunOnlyIfIdle>false</RunOnlyIfIdle>
-            <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
-            <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
-            <WakeToRun>false</WakeToRun>
-            <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
-            <Priority>7</Priority>
-        </Settings>
-        <Actions Context="Author">
-            <Exec>
-                <Command>{batch_file_path}</Command>
-            </Exec>
-            <Exec>
-                <Command>timeout</Command>
-                <Arguments>60</Arguments>
-            </Exec>
-            <Exec>
-                <Command>{batch_file_path}</Command>
-            </Exec>
-            <Exec>
-                <Command>timeout</Command>
-                <Arguments>60</Arguments>
-            </Exec>
-            <Exec>
-                <Command>{batch_file_path}</Command>
-            </Exec>
-        </Actions>
-        </Task>
-
-    """
+    xml_content = f"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <Triggers>
+    <LogonTrigger>
+      <Enabled>true</Enabled>
+    </LogonTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>NT AUTHORITY\\SYSTEM</UserId>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>false</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>C:\BKP_1.2\ScriptsSQL\BackupVerif.exe</Command>
+    </Exec>
+    <Exec>
+      <Command>timeout</Command>
+      <Arguments>60</Arguments>
+    </Exec>
+    <Exec>
+      <Command>C:\BKP_1.2\ScriptsSQL\BackupVerif.exe</Command>
+    </Exec>
+  </Actions>
+</Task>"""
 
     # Salva o conteúdo XML no arquivo dentro do diretório temporário
     with open(xml_file_path, "w") as xml_file:
@@ -863,7 +841,7 @@ def create_startupsql_routine():
 
     try:
         subprocess.run(task_command, capture_output=True, text=True, check=True)
-        status_label_tab5.config(text="Rotina de verificação criada!", foreground="blue")
+        status_label_tab5.configure(text="Rotina de verificação criada!", text_color="blue")
     except subprocess.CalledProcessError as e:
         print(f"Erro ao criar a tarefa agendada: {e}")
     finally:
@@ -881,9 +859,9 @@ def replace_sql_line_shutdown(script_path):
         with open(script_path, 'w') as script_file:
             script_file.writelines(lines)
 
-        status_label_tab5.config(text="Alterado com sucesso!", foreground="green")
+        status_label_tab5.configure(text="Alterado com sucesso!", text_color="green")
     except Exception as e:
-        status_label_tab5.config(text=f"Erro ao alterar scripts: {str(e)}", foreground="red")
+        status_label_tab5.configure(text=f"Erro ao alterar scripts: {str(e)}", text_color="red")
 
 def shutdown_sql_scripts():
     scripts_directory = "C:\\BKP_1.2\\ScriptsSQL"
@@ -896,13 +874,16 @@ def shutdown_sql_scripts():
                     script_path = os.path.join(root, filename)
                     replace_sql_line_shutdown(script_path)
 
-create_startup_routinesql_button = ttk.Button(create_buttons_frame, text="Rotina de verificação", command=create_startupsql_routine)
-create_startup_routinesql_button.grid(row=0, column=1, padx=10, pady=5)
+create_task_button = customtkinter.CTkButton(create_buttons_frame, text="Criar tarefas", command=create_sqltask)
+create_task_button.grid(row=0, column=0, padx=10, pady=(15, 5))
 
-shutdown_button = ttk.Button(create_buttons_frame, text="Desligar após execução", command=shutdown_sql_scripts)
-shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=7, sticky="n")
+create_startup_routinesql_button = customtkinter.CTkButton(create_buttons_frame, text="Rotina de verificação", command=create_sql_verif)
+create_startup_routinesql_button.grid(row=0, column=1, padx=10, pady=(15, 5))
 
-status_label_tab5 = ttk.Label(tab5, text="", foreground="black")
+shutdown_button = customtkinter.CTkButton(create_buttons_frame, text="Desligar após execução", command=shutdown_sql_scripts)
+shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 15), sticky="n")
+
+status_label_tab5 = customtkinter.CTkLabel(notebook.tab("Rotinas SQL"), text="", )
 status_label_tab5.pack()
 
 app.mainloop()
