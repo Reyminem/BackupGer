@@ -8,15 +8,27 @@ import shutil
 import tempfile
 import winshell
 import sys
+import ctypes
+
+# Verifica se o programa está sendo executado como administrador
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+# Se não estiver sendo executado como administrador, reinicie como administrador
+if not is_admin():
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    sys.exit()
 
 # Personalização do programa e da janela
-
 customtkinter.set_appearance_mode("light")
 customtkinter.set_default_color_theme("dark-blue")
 
 app = customtkinter.CTk()
 app.title("BackupGer")
-app.geometry("500x500")
+app.geometry("600x550")
 icon_path = os.path.join(os.path.dirname(__file__), "bin", "12.ico")
 app.iconbitmap(icon_path)
 
@@ -30,7 +42,7 @@ notebook.add("Config")
 
 # CTkFrame para gravar o ID
 frame1_tab1 = customtkinter.CTkFrame(notebook.tab("Config"))
-frame1_tab1.pack(fill="x", padx=130, pady=(10, 0))
+frame1_tab1.pack(padx=15, pady=15)
 
 # Função para salvar o ID do cliente
 def save_id():
@@ -57,13 +69,13 @@ def save_id():
     message_label.configure(text="Salvo com sucesso!", text_color="green")
 
 title_label_tab1 = customtkinter.CTkLabel(frame1_tab1, text="ID do Cliente", font=("Helvetica", 14, "bold"))
-title_label_tab1.pack(pady=0)
+title_label_tab1.grid(row=0, column=0, columnspan=2, pady=(10, 10))
 
 id_entry = customtkinter.CTkEntry(frame1_tab1)
-id_entry.pack(pady=2)
+id_entry.grid(row=1, column=1, padx=10, pady=(0, 15))
 
 save_button = customtkinter.CTkButton(frame1_tab1, text="Salvar ID", command=save_id)
-save_button.pack(pady=(0, 15))
+save_button.grid(row=2, column=1, padx=10, pady=(0, 15))
 
 message_label = customtkinter.CTkLabel(notebook.tab("Config"), text="")
 message_label.pack()
@@ -72,28 +84,11 @@ message_label.pack()
 frame2_tab1 = customtkinter.CTkFrame(notebook.tab("Config"))
 frame2_tab1.pack(padx=15, pady=15)
 
-title_label_tab1 = customtkinter.CTkLabel(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 14, "bold"))
+title_label_tab1 = customtkinter.CTkLabel(frame2_tab1, text="7-Zip", font=("Helvetica", 14, "bold"))
 title_label_tab1.grid(row=0, column=0, columnspan=2, pady=5)
 
 # Caminho para os executáveis 7-Zip no diretório bin
 seven_zip_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
-
-# Função para executar o 7z.exe
-def executar_7z():
-    try:
-        # Cria um diretório temporário para evitar problemas de permissão
-        temp_dir = tempfile.mkdtemp()
-        
-        # Copia o 7z.exe para o diretório temporário
-        shutil.copy2(os.path.join(seven_zip_dir, "7z.exe"), temp_dir)
-
-        # Executa o 7z.exe a partir do diretório temporário
-        subprocess.run([os.path.join(temp_dir, "7z.exe")])
-
-        # Remove o diretório temporário após a execução
-        shutil.rmtree(temp_dir)
-    except Exception as e:
-        print(f"Erro ao executar 7z.exe: {e}")
         
 def executar_7z_x64():
     try:
@@ -107,15 +102,8 @@ def executar_7z_x64():
     except Exception as e:
         print(f"Erro ao executar 7z-x64.exe: {e}")
 
-title_label_tab1 = customtkinter.CTkLabel(frame2_tab1, text="Instalar 7-Zip", font=("Helvetica", 14, "bold"))
-title_label_tab1.grid(row=0, column=0, columnspan=2, pady=10)
-
-# Botão para instalação do 7-Zip 32 bits
-button_7z = customtkinter.CTkButton(frame2_tab1, text="32 Bits", command=executar_7z)
-button_7z.grid(row=1, column=0, padx=10, pady=(0, 15))
-
 # Botão para instalação do 7-Zip 64 bits
-button_7z_x64 = customtkinter.CTkButton(frame2_tab1, text="64 Bits", command=executar_7z_x64)
+button_7z_x64 = customtkinter.CTkButton(frame2_tab1, text="Instalar", command=executar_7z_x64)
 button_7z_x64.grid(row=1, column=1, padx=10, pady=(0, 15))
 
 status_label_tab1 = customtkinter.CTkLabel(notebook.tab("Config"), text="")
@@ -136,13 +124,13 @@ title_label_tab2.pack(fill="x", pady=5, padx=10)
 def create_directories():
     base_path = "C:\\BKP_1.2"
     subdirectories = ["ScriptsMySQL", "Backup\\Domingo", "Backup\\Almoco", "Backup\\Segunda", "Backup\\Terca",
-                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado", "Backup\\Desligar"]
+                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado"]
 
     for directory in subdirectories:
         os.makedirs(os.path.join(base_path, directory), exist_ok=True)
 
     base_path_2 = "C:\\Program Files (x86)\\12informatica\\BackupDrive"
-    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Desligar"]
+    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"]
 
     for directory in subdirectories_2:
         os.makedirs(os.path.join(base_path_2, directory), exist_ok=True)
@@ -180,11 +168,11 @@ status_label_tab2 = customtkinter.CTkLabel(notebook.tab("MySQL"), text="")
 status_label_tab2.pack()
 
 frame2_tab2 = customtkinter.CTkFrame(notebook.tab("MySQL"))
-frame2_tab2.pack(fill="x", pady=5, padx=125)
+frame2_tab2.pack(padx=15, pady=15)
 
 # Título
 title_label_tab2 = customtkinter.CTkLabel(frame2_tab2, text="Backup ao Desligar", font=("Helvetica", 14, "bold"))
-title_label_tab2.pack(pady=5)
+title_label_tab2.grid(row=0, column=0, padx=10, pady=(10, 15))
 
 def mysql_shutdown():
     base_path = "C:\\BKP_1.2"
@@ -229,7 +217,7 @@ def mysql_shutdown():
 
 # Botão para criar o atalho
 mysql_shutdown_button = customtkinter.CTkButton(frame2_tab2, text="Criar atalho", command=mysql_shutdown)
-mysql_shutdown_button.pack(pady=(5, 15))
+mysql_shutdown_button.grid(row=1, column=0, padx=10, pady=(0, 15))
 
 frame2_tab2_status_label = customtkinter.CTkLabel(notebook.tab("MySQL"), text="")
 frame2_tab2_status_label.pack()
@@ -364,85 +352,12 @@ def create_mysqltask():
         else:
             status_label_tab3.configure(text=f"Nenhum dia selecionado!", text_color="red")
     
+    # Limpar completamente a lista de dias selecionados após criar as tarefas
+    selectedmysql_day_var.set("")
+    
     # Desmarcar todas as caixas de seleção após criar as tarefas
     for day_checkbutton_var in mysqlday_checkbutton_vars:
         day_checkbutton_var.set(0)
-
-# Função para a criação da rotina de scan para verificação
-def create_mysql_verif():
-    batch_file_path = r"C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe"  # Usa 'r' antes da string para evitar problemas com barras invertidas
-    task_name = "MySQL Verifica"
-    
-    # Usa o diretório C:\BKP_1.2 como diretório temporário
-    temp_dir = r"C:\BKP_1.2"
-
-    # Define o caminho completo para o arquivo XML dentro do diretório temporário
-    xml_file_path = os.path.join(temp_dir, "tarefa.xml")
-
-    # Define o conteúdo XML da tarefa agendada
-    xml_content = f"""<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <Triggers>
-    <LogonTrigger>
-      <Enabled>true</Enabled>
-    </LogonTrigger>
-  </Triggers>
-  <Principals>
-    <Principal id="Author">
-      <UserId>NT AUTHORITY\\SYSTEM</UserId>
-      <RunLevel>HighestAvailable</RunLevel>
-    </Principal>
-  </Principals>
-  <Settings>
-    <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
-    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-    <AllowHardTerminate>true</AllowHardTerminate>
-    <StartWhenAvailable>false</StartWhenAvailable>
-    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-    <IdleSettings>
-      <StopOnIdleEnd>true</StopOnIdleEnd>
-      <RestartOnIdle>false</RestartOnIdle>
-    </IdleSettings>
-    <AllowStartOnDemand>true</AllowStartOnDemand>
-    <Enabled>true</Enabled>
-    <Hidden>false</Hidden>
-    <RunOnlyIfIdle>false</RunOnlyIfIdle>
-    <WakeToRun>false</WakeToRun>
-    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
-    <Priority>7</Priority>
-  </Settings>
-  <Actions Context="Author">
-    <Exec>
-      <Command>C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe</Command>
-    </Exec>
-    <Exec>
-      <Command>timeout</Command>
-      <Arguments>60</Arguments>
-    </Exec>
-    <Exec>
-      <Command>C:\BKP_1.2\ScriptsMySQL\BackupVerif.exe</Command>
-    </Exec>
-  </Actions>
-</Task>"""
-
-    # Salva o conteúdo XML no arquivo dentro do diretório temporário
-    with open(xml_file_path, "w") as xml_file:
-        xml_file.write(xml_content)
-
-    # Cria a tarefa agendada usando o comando schtasks
-    task_command = [
-        "schtasks", "/create", "/tn", task_name, "/xml", xml_file_path, "/F"
-    ]
-
-    try:
-        subprocess.run(task_command, capture_output=True, text=True, check=True)
-        status_label_tab3.configure(text="Rotina de verificação criada!", text_color="blue")
-    except subprocess.CalledProcessError as e:
-        print(f"Erro ao criar a tarefa agendada: {e}")
-    finally:
-        # Exclua apenas o arquivo XML temporário
-        os.remove(xml_file_path)    
 
 def replace_mysql_line_shutdown(script_path):
     try:
@@ -476,15 +391,11 @@ create_buttons_frame.pack(padx=15, pady=(15, 5))
 
 # Botão para criar tarefas
 create_mysqltask_button = customtkinter.CTkButton(create_buttons_frame, text="Criar tarefas", command=create_mysqltask)
-create_mysqltask_button.grid(row=0, column=0, padx=10, pady=(15, 5))
-
-# Botão para criar a rotina de verificação
-create_startup_routine_button = customtkinter.CTkButton(create_buttons_frame, text="Rotina de verificação", command=create_mysql_verif)
-create_startup_routine_button.grid(row=0, column=1, padx=10, pady=(15, 5))
+create_mysqltask_button.grid(row=0, column=0, padx=10, pady=(10, 10))
 
 # Botão para adicionar shutdown aos scripts
 shutdown_button = customtkinter.CTkButton(create_buttons_frame, text="Desligar após execução", command=shutdown_mysql_scripts)
-shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 15), sticky="n")
+shutdown_button.grid(row=0, column=1, columnspan=2, padx=10, pady=(10, 10))
 
 status_label_tab3 = customtkinter.CTkLabel(notebook.tab("Rotinas MySQL"), text="")
 status_label_tab3.pack()
@@ -502,13 +413,13 @@ title_label_tab4.pack(pady=5)
 def create_directories():
     base_path = "C:\\BKP_1.2"
     subdirectories = ["ScriptsSQL", "Backup\\Domingo", "Backup\\Almoco", "Backup\\Segunda", "Backup\\Terca",
-                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado", "Backup\\Desligar"]
+                      "Backup\\Quarta", "Backup\\Quinta", "Backup\\Sexta", "Backup\\Sabado"]
 
     for directory in subdirectories:
         os.makedirs(os.path.join(base_path, directory), exist_ok=True)
 
     base_path_2 = "C:\\Program Files (x86)\\12informatica\\BackupDrive"
-    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Desligar"]
+    subdirectories_2 = ["Domingo", "Almoco", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"]
 
     for directory in subdirectories_2:
         os.makedirs(os.path.join(base_path_2, directory), exist_ok=True)
@@ -565,7 +476,8 @@ def save_data():
     configure['Server'] = {
         'Server': server_name_entry.get(),
         'User': user_entry.get(),
-        'Password': password_entry.get()
+        'Password': password_entry.get(),
+        'Port': '1433'
     }
 
     save_directory = "C:\BKP_1.2\ScriptsSQL"
@@ -576,6 +488,7 @@ def save_data():
     with open(file_path, 'w') as configfile:
         configure.write(configfile)
     status_label.configure(text="Salvo com sucesso!", text_color="green")
+
 
 # Crie um único frame para todos os elementos
 input_frame = customtkinter.CTkFrame(notebook.tab("SQL"))
@@ -770,83 +683,11 @@ def create_sqltask():
     for day_checkbutton_var in sqlday_checkbutton_vars:
         day_checkbutton_var.set(0)
 
+    # Limpar completamente a lista de dias selecionados após criar as tarefas
+    selectedsql_day_var.set("")
+
 create_buttons_frame = customtkinter.CTkFrame(notebook.tab("Rotinas SQL"))
 create_buttons_frame.pack(padx=15, pady=15)
-
-def create_sql_verif():
-    batch_file_path = r"C:\BKP_1.2\ScriptsSQL\BackupVerif.exe"  # Usa 'r' antes da string para evitar problemas com barras invertidas
-    task_name = "SQL Verifica"
-    
-    # Usa o diretório C:\BKP_1.2 como diretório temporário
-    temp_dir = r"C:\BKP_1.2"
-
-    # Define o caminho completo para o arquivo XML dentro do diretório temporário
-    xml_file_path = os.path.join(temp_dir, "tarefa.xml")
-
-    # Define o conteúdo XML da tarefa agendada
-    xml_content = f"""<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <Triggers>
-    <LogonTrigger>
-      <Enabled>true</Enabled>
-    </LogonTrigger>
-  </Triggers>
-  <Principals>
-    <Principal id="Author">
-      <UserId>NT AUTHORITY\\SYSTEM</UserId>
-      <RunLevel>HighestAvailable</RunLevel>
-    </Principal>
-  </Principals>
-  <Settings>
-    <MultipleInstancesPolicy>StopExisting</MultipleInstancesPolicy>
-    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-    <AllowHardTerminate>true</AllowHardTerminate>
-    <StartWhenAvailable>false</StartWhenAvailable>
-    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-    <IdleSettings>
-      <StopOnIdleEnd>true</StopOnIdleEnd>
-      <RestartOnIdle>false</RestartOnIdle>
-    </IdleSettings>
-    <AllowStartOnDemand>true</AllowStartOnDemand>
-    <Enabled>true</Enabled>
-    <Hidden>false</Hidden>
-    <RunOnlyIfIdle>false</RunOnlyIfIdle>
-    <WakeToRun>false</WakeToRun>
-    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
-    <Priority>7</Priority>
-  </Settings>
-  <Actions Context="Author">
-    <Exec>
-      <Command>C:\BKP_1.2\ScriptsSQL\BackupVerif.exe</Command>
-    </Exec>
-    <Exec>
-      <Command>timeout</Command>
-      <Arguments>60</Arguments>
-    </Exec>
-    <Exec>
-      <Command>C:\BKP_1.2\ScriptsSQL\BackupVerif.exe</Command>
-    </Exec>
-  </Actions>
-</Task>"""
-
-    # Salva o conteúdo XML no arquivo dentro do diretório temporário
-    with open(xml_file_path, "w") as xml_file:
-        xml_file.write(xml_content)
-
-    # Cria a tarefa agendada usando o comando schtasks
-    task_command = [
-        "schtasks", "/create", "/tn", task_name, "/xml", xml_file_path, "/F"
-    ]
-
-    try:
-        subprocess.run(task_command, capture_output=True, text=True, check=True)
-        status_label_tab5.configure(text="Rotina de verificação criada!", text_color="blue")
-    except subprocess.CalledProcessError as e:
-        print(f"Erro ao criar a tarefa agendada: {e}")
-    finally:
-        # Exclua apenas o arquivo XML temporário
-        os.remove(xml_file_path)
 
 def replace_sql_line_shutdown(script_path):
     try:
@@ -875,13 +716,10 @@ def shutdown_sql_scripts():
                     replace_sql_line_shutdown(script_path)
 
 create_task_button = customtkinter.CTkButton(create_buttons_frame, text="Criar tarefas", command=create_sqltask)
-create_task_button.grid(row=0, column=0, padx=10, pady=(15, 5))
-
-create_startup_routinesql_button = customtkinter.CTkButton(create_buttons_frame, text="Rotina de verificação", command=create_sql_verif)
-create_startup_routinesql_button.grid(row=0, column=1, padx=10, pady=(15, 5))
+create_task_button.grid(row=0, column=0, padx=10, pady=(10, 10))
 
 shutdown_button = customtkinter.CTkButton(create_buttons_frame, text="Desligar após execução", command=shutdown_sql_scripts)
-shutdown_button.grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 15), sticky="n")
+shutdown_button.grid(row=0, column=1, columnspan=2, padx=10, pady=(10, 10))
 
 status_label_tab5 = customtkinter.CTkLabel(notebook.tab("Rotinas SQL"), text="", )
 status_label_tab5.pack()
@@ -890,7 +728,7 @@ app.mainloop()
 
 # Anotações úteis
 """
-pyinstaller --onefile --icon=bin/12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL"--add-data "ScriptsMySQL;ScriptsMySQL" --add-data "bin;bin" BackupGer.py
+pyinstaller --icon=bin/12.ico --noconsole --add-data "ScriptsSQL;ScriptsSQL"--add-data "ScriptsMySQL;ScriptsMySQL" --add-data "bin;bin" BackupGer.py
 --distpath ~/Desktop BackupGer.py
 
 from ttkthemes import ThemedTk
